@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音板 - 铄的个人网站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .soundboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .sound-btn {
+            background: white;
+            border: none;
+            padding: 25px 15px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sound-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+
+        .sound-btn:active {
+            transform: translateY(2px);
+        }
+
+        .sound-btn .emoji {
+            font-size: 2rem;
+        }
+
+        .sound-btn .label {
+            font-size: 1rem;
+        }
+
+        .playing {
+            background: #ffd700;
+            transform: scale(0.98);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: background 0.2s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        footer {
+            margin-top: 40px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 音板 Soundboard</h1>
+        <p class="subtitle">点击按钮播放音效</p>
+
+        <div class="soundboard" id="soundboard">
+            <!-- 按钮会通过 JavaScript 动态生成 -->
+        </div>
+
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <footer>
+            <p>音效来自 Freesound / Mixkit 免费音效库</p>
+        </footer>
+    </div>
+
+    <script>
+        // 音效配置列表
+        // 注意：你需要先下载音效文件，放到仓库里，然后把下面的路径改成你的文件名
+        const sounds = [
+            { name: "叮咚", emoji: "🔔", file: "dingdong.mp3" },
+            { name: "鼓点", emoji: "🥁", file: "drum.mp3" },
+            { name: "掌声", emoji: "👏", file: "applause.mp3" },
+            { name: "笑声", emoji: "😂", file: "laugh.mp3" },
+            { name: "提示音", emoji: "✨", file: "notification.mp3" },
+            { name: "游戏开始", emoji: "🎮", file: "game-start.mp3" }
+        ];
+
+        // 获取音板容器
+        const soundboard = document.getElementById('soundboard');
+
+        // 预加载所有音频对象
+        const audioPlayers = {};
+
+        // 创建按钮
+        sounds.forEach((sound, index) => {
+            // 创建按钮元素
+            const button = document.createElement('button');
+            button.className = 'sound-btn';
+            button.innerHTML = `
+                <div class="emoji">${sound.emoji}</div>
+                <div class="label">${sound.name}</div>
+            `;
+
+            // 创建音频对象（预加载）
+            const audio = new Audio(sound.file);
+            audio.preload = 'auto';
+            audioPlayers[sound.name] = audio;
+
+            // 点击播放
+            button.addEventListener('click', () => {
+                // 先停止并重置当前音频（允许快速连续点击）
+                audio.currentTime = 0;
+                audio.play().catch(e => {
+                    console.log('播放失败:', e);
+                    // 如果播放失败（比如文件还没上传），给个提示
+                    button.style.opacity = '0.5';
+                    setTimeout(() => { button.style.opacity = '1'; }, 500);
+                });
+
+                // 添加播放动画效果
+                button.classList.add('playing');
+                setTimeout(() => {
+                    button.classList.remove('playing');
+                }, 200);
+            });
+
+            soundboard.appendChild(button);
+        });
+
+        // 如果没有找到音频文件，在控制台提示
+        console.log('音板已加载，请确保音效文件已上传到仓库根目录');
+    </script>
+</body>
+</html>
