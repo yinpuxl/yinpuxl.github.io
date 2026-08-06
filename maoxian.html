@@ -37,7 +37,7 @@
     padding-bottom: calc(12px + var(--safe-bottom));
     pointer-events: none;
     z-index: 10;
-    gap: 10px;
+    gap: 8px;
   }
   .btn-group {
     display: flex;
@@ -119,7 +119,7 @@
 const PLR_W = 28, PLR_H = 36;
 const GRAVITY = 0.5;
 const MOVE_SPEED = 3.5;
-const JUMP_SPEED = -11;
+const JUMP_SPEED = -12.5;
 const MAX_FALL = 12;
 const WORLD_H = 800;
 
@@ -150,7 +150,7 @@ const levels = [
       { type:'static', x:1800, y:680, w:400, h:120 },
       { type:'static', x:2350, y:650, w:450, h:150 },
       // 浮空平台
-      { type:'static', x:420, y:560, w:120, h:20 },
+      { type:'static', x:420, y:570, w:120, h:20 },
       { type:'static', x:620, y:480, w:140, h:20 },
       { type:'static', x:900, y:520, w:130, h:20 },
       { type:'static', x:1150, y:430, w:150, h:20 },
@@ -244,7 +244,7 @@ const levels = [
       { type:'static', x:3000, y:640, w:350, h:160 },
       { type:'static', x:3500, y:660, w:300, h:140 },
       // 浮空平台
-      { type:'static', x:280, y:510, w:90, h:16 },
+      { type:'static', x:280, y:530, w:90, h:16 },
       { type:'static', x:500, y:420, w:100, h:16 },
       { type:'static', x:800, y:480, w:110, h:16 },
       { type:'static', x:1100, y:400, w:100, h:16 },
