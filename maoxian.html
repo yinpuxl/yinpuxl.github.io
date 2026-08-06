@@ -423,12 +423,10 @@ function recalcStats(){
 function addLog(msg, cls=''){
   const div = document.createElement('div');
   div.className = 'log-entry ' + (cls||'');
-  div.textContent = msg;
+  div.innerHTML = msg;
   const log = document.getElementById('log');
   log.appendChild(div);
-  // 限制日志数量
   while(log.children.length > 50) log.removeChild(log.firstChild);
-  document.getElementById('content').scrollTop = 0;
 }
 
 function canAfford(n){ return G.sp >= n }
@@ -577,53 +575,28 @@ function doSkill(idx){
   G.mp -= sk.mp;
   // 计算伤害
   let dmg = Math.floor(G.atk * sk.dmg);
-  // crit
   if(sk.crit || r(100) < 3 + G.sen){
     dmg = Math.floor(dmg * 1.8);
     addLog(`🎯 暴击！`,'combat');
   }
-  // aoe bonus
   if(sk.aoe){ dmg = Math.floor(dmg * 1.15); }
   dmg = Math.max(1, dmg - Math.floor(enemy.def*0.3));
   dmg += r(6) - 3;
   dmg = Math.max(1, dmg);
   enemy.hp -= dmg;
   addLog(`你使用 <span class="c-accent">${sk.name}</span>，对${enemy.name}造成 <span class="c-danger">${dmg}</span> 伤害。`,'combat');
-  // buff
   if(sk.buff){
     G.buffs[sk.buff] = (G.buffs[sk.buff]||0) + sk.buffVal;
     recalcStats();
     addLog(`🛡️ 防御提升！持续${sk.buffVal}回合`,'sys');
   }
-
+  refreshUI();
   if(enemy.hp <= 0){
     winBattle();
     return;
   }
-
-  // 敌人回合
   enemyTurn();
   updateBattleUI();
-}
-
-function enemyTurn(){
-  const eDmg = Math.max(1, enemy.atk - Math.floor(G.def*0.4) + r(8) - 4);
-  G.hp -= eDmg;
-  addLog(`${enemy.name} 攻击你，造成 <span class="c-danger">${eDmg}</span> 伤害。`,'combat');
-  if(G.hp <= 0){
-    G.hp = 0;
-    addLog('💀 你被击败了！损失了一些灵石...','danger');
-    G.sp = Math.max(0, G.sp - Math.floor(G.sp*0.3));
-    G.hp = Math.floor(G.maxHp*0.5);
-    endBattle();
-    return;
-  }
-  // 衰减buff
-  for(const k in G.buffs){
-    G.buffs[k]--;
-    if(G.buffs[k]<=0) delete G.buffs[k];
-  }
-  recalcStats();
 }
 
 function winBattle(){
