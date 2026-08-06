@@ -37,7 +37,7 @@
     padding-bottom: calc(12px + var(--safe-bottom));
     pointer-events: none;
     z-index: 10;
-    gap: 8px;
+    gap: 10px;
   }
   .btn-group {
     display: flex;
@@ -117,10 +117,10 @@
 
 // ─── 常量 ───────────────────────────────
 const PLR_W = 28, PLR_H = 36;
-const GRAVITY = 0.5;
-const MOVE_SPEED = 3.5;
-const JUMP_SPEED = -12.5;
-const MAX_FALL = 12;
+const GRAVITY = 0.30;
+const MOVE_SPEED = 2.5;
+const JUMP_SPEED = -6;
+const MAX_FALL = 6;
 const WORLD_H = 800;
 
 // ─── DOM ────────────────────────────────
@@ -190,7 +190,7 @@ const levels = [
       { type:'static', x:2550, y:680, w:250, h:120 },
       { type:'static', x:2950, y:640, w:250, h:160 },
       // 浮空平台
-      { type:'static', x:350, y:530, w:100, h:18 },
+      { type:'static', x:350, y:545, w:100, h:18 },
       { type:'static', x:600, y:430, w:120, h:18 },
       { type:'static', x:1020, y:500, w:100, h:18 },
       { type:'static', x:1400, y:420, w:130, h:18 },
