@@ -3,1035 +3,885 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>冒险跳跃 - 平台闯关</title>
+<title>仙途 - 修仙文字冒险</title>
 <style>
-  :root {
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    background: #1a1a2e;
-    position: fixed;
-    top: 0; left: 0;
-  }
-  canvas {
-    display: block;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-  #controls {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 12px 16px;
-    padding-bottom: calc(12px + var(--safe-bottom));
-    pointer-events: none;
-    z-index: 10;
-    gap: 10px;
-  }
-  .btn-group {
-    display: flex;
-    gap: 8px;
-    pointer-events: auto;
-  }
-  .ctrl-btn {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    color: #fff;
-    font-size: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.1s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .ctrl-btn:active, .ctrl-btn.pressed {
-    background: rgba(255,255,255,0.4);
-    border-color: rgba(255,255,255,0.8);
-  }
-  .ctrl-btn.jump {
-    width: 80px; height: 80px;
-    font-size: 18px;
-    font-weight: bold;
-    background: rgba(255,180,50,0.3);
-    border-color: rgba(255,180,50,0.6);
-    letter-spacing: 2px;
-  }
-  .ctrl-btn.jump:active, .ctrl-btn.jump.pressed {
-    background: rgba(255,180,50,0.6);
-    border-color: rgba(255,180,50,0.9);
-  }
-  #kb-hint {
-    position: fixed;
-    top: 8px; left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.5);
-    font-family: sans-serif;
-    font-size: 11px;
-    pointer-events: none;
-    z-index: 10;
-    text-align: center;
-  }
-  @media (hover: none) and (pointer: coarse) {
-    #kb-hint { display: none; }
-  }
-  @media (min-width: 768px) {
-    .ctrl-btn { width: 56px; height: 56px; font-size: 24px; }
-    .ctrl-btn.jump { width: 70px; height: 70px; font-size: 16px; }
-    #controls { padding: 16px 24px; padding-bottom: calc(16px + var(--safe-bottom)); }
-  }
+:root {
+  --bg: #0d0d1a;
+  --panel: #141428;
+  --gold: #d4a853;
+  --text: #c8c0b8;
+  --dim: #7a7268;
+  --accent: #5b8def;
+  --danger: #d94a4a;
+  --heal: #4acd6b;
+  --rare: #b85be0;
+  --epic: #e0883a;
+  --legend: #e04040;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;background:var(--bg);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--text)}
+#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative}
+
+/* 顶部状态栏 */
+#topbar{background:var(--panel);padding:10px 14px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+#topbar .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3a3050,#1a1030);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--gold)}
+#topbar .info{flex:1;min-width:0}
+#topbar .name{font-weight:bold;font-size:16px;color:#f0e6d8}
+#topbar .realm{font-size:12px;color:var(--gold)}
+#topbar .stats{display:flex;gap:12px;margin-top:2px;font-size:11px;color:var(--dim)}
+#topbar .stats span{white-space:nowrap}
+
+/* 标签栏 */
+#tabs{display:flex;flex-shrink:0;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.06)}
+#tabs button{flex:1;padding:10px 4px;background:none;border:none;color:var(--dim);font-size:13px;
+  cursor:pointer;transition:.2s;position:relative;font-family:inherit}
+#tabs button.active{color:var(--gold);font-weight:bold}
+#tabs button.active::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;background:var(--gold)}
+
+/* 内容区 */
+#content{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth}
+#content::-webkit-scrollbar{width:3px}
+#content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* 日志区 */
+#log{padding:8px 0}
+.log-entry{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;line-height:1.6;animation:fadeIn .3s}
+.log-entry.sys{color:#8ab4f8}
+.log-entry.combat{color:#f09060}
+.log-entry.loot{color:var(--gold)}
+.log-entry.break{color:var(--rare);font-weight:bold}
+.log-entry.danger{color:var(--danger)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* 面板 */
+.panel{display:none}
+.panel.active{display:block}
+
+/* 卡片 */
+.card{background:var(--panel);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.06)}
+.card h3{font-size:14px;color:var(--gold);margin-bottom:8px}
+.card .row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
+.card .row .val{color:#ccc}
+
+.btn{display:inline-block;padding:10px 18px;border:none;border-radius:8px;font-size:14px;cursor:pointer;
+  font-family:inherit;transition:.2s;font-weight:bold;margin:3px}
+.btn:active{transform:scale(.95)}
+.btn-gold{background:linear-gradient(135deg,#c8943a,#a07020);color:#fff}
+.btn-blue{background:linear-gradient(135deg,#4a80d0,#3050a0);color:#fff}
+.btn-red{background:linear-gradient(135deg,#d05050,#903030);color:#fff}
+.btn-green{background:linear-gradient(135deg,#4ab860,#308040);color:#fff}
+.btn-purple{background:linear-gradient(135deg,#8a50c0,#6030a0);color:#fff}
+.btn-outline{background:none;border:1px solid var(--gold);color:var(--gold)}
+.btn-block{display:block;width:100%;text-align:center;margin:5px 0}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* 进度条 */
+.progress-bar{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin:4px 0}
+.progress-bar .fill{height:100%;border-radius:4px;transition:width .4s}
+.fill-hp{background:linear-gradient(90deg,#e04040,#f06060)}
+.fill-mp{background:linear-gradient(90deg,#4080e0,#60a0f0)}
+.fill-exp{background:linear-gradient(90deg,#c89040,#e0b050)}
+.fill-cd{background:linear-gradient(90deg,#707070,#909090)}
+
+/* 战斗区 */
+#battle-area{display:none}
+#battle-area.active{display:block}
+.enemy-card{background:var(--panel);border-radius:10px;padding:12px;margin-bottom:10px;text-align:center;
+  border:1px solid var(--danger)}
+.enemy-card .enemy-name{font-size:18px;color:var(--danger);font-weight:bold}
+.enemy-card .enemy-realm{font-size:12px;color:var(--dim);margin:2px 0}
+.enemy-card .enemy-hp{margin:8px 0}
+
+#skill-bar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+#skill-bar button{min-width:60px}
+
+/* 装备显示 */
+.equip-item{display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin:4px 0}
+.equip-item .q-icon{font-size:20px;flex-shrink:0}
+.equip-item .q-info{flex:1;min-width:0}
+.equip-item .q-name{font-size:13px;font-weight:bold}
+.equip-item .q-stat{font-size:11px;color:var(--dim)}
+
+/* 商店/背包列表 */
+.item-list{max-height:300px;overflow-y:auto}
+.item-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.item-row .item-cost{color:var(--gold);font-weight:bold;flex-shrink:0;margin-left:8px}
+
+/* 特色文字颜色 */
+.c-gold{color:var(--gold)}
+.c-accent{color:var(--accent)}
+.c-danger{color:var(--danger)}
+.c-heal{color:var(--heal)}
+.c-rare{color:var(--rare)}
+.c-epic{color:var(--epic)}
+.c-legend{color:var(--legend)}
+.c-dim{color:var(--dim)}
+
+/* 响应式 */
+@media(max-width:380px){
+  #tabs button{font-size:11px;padding:8px 2px}
+  #topbar{padding:8px 10px}
+  .btn{padding:8px 14px;font-size:13px}
+}
 </style>
 </head>
 <body>
-
-<canvas id="game"></canvas>
-<div id="kb-hint">⌨ 方向键/A D 移动 · 空格/W/↑ 跳跃</div>
-<div id="controls">
-  <div class="btn-group">
-    <button class="ctrl-btn" id="btn-left"  aria-label="左">◀</button>
-    <button class="ctrl-btn" id="btn-right" aria-label="右">▶</button>
+<div id="app">
+  <!-- 顶部状态栏 -->
+  <div id="topbar">
+    <div class="avatar" id="avatar-icon">🧘</div>
+    <div class="info">
+      <div class="name" id="p-name">无名修士</div>
+      <div class="realm" id="p-realm">凡人</div>
+      <div class="stats">
+        <span>❤️ <span id="p-hp">100</span></span>
+        <span>💎 <span id="p-sp">0</span></span>
+      </div>
+    </div>
   </div>
-  <div class="btn-group">
-    <button class="ctrl-btn jump" id="btn-jump" aria-label="跳跃">跳</button>
+
+  <!-- 标签栏 -->
+  <div id="tabs">
+    <button class="active" data-tab="main">🏠 修炼</button>
+    <button data-tab="battle-panel">⚔️ 战斗</button>
+    <button data-tab="equip">🗡️ 装备</button>
+    <button data-tab="explore">🗺️ 探索</button>
+    <button data-tab="shop">🏪 坊市</button>
+  </div>
+
+  <!-- 内容区 -->
+  <div id="content">
+    <!-- 日志 -->
+    <div id="log"></div>
+
+    <!-- 主面板 -->
+    <div class="panel active" id="panel-main">
+      <div class="card">
+        <h3>📿 修炼</h3>
+        <div class="row"><span>修为进度</span><span class="val" id="exp-text">0 / 100</span></div>
+        <div class="progress-bar"><div class="fill fill-exp" id="exp-bar" style="width:0%"></div></div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="doMeditate()">🧘 修炼 (灵力)</button>
+          <button class="btn btn-blue" onclick="doAbsorb()">💎 吸收灵石</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📋 属性</h3>
+        <div class="row"><span>生命</span><span class="val" id="stat-hp">100/100</span></div>
+        <div class="row"><span>灵力</span><span class="val" id="stat-mp">50/50</span></div>
+        <div class="row"><span>攻击</span><span class="val" id="stat-atk">10</span></div>
+        <div class="row"><span>防御</span><span class="val" id="stat-def">5</span></div>
+        <div class="row"><span>神识</span><span class="val" id="stat-sen">5</span></div>
+        <div class="row"><span>悟性</span><span class="val" id="stat-ins">10</span></div>
+        <div class="row"><span>根骨</span><span class="val" id="stat-bone">8</span></div>
+        <div class="row"><span>五行亲和</span><span class="val" id="stat-elem">金</span></div>
+      </div>
+    </div>
+
+    <!-- 战斗面板 -->
+    <div class="panel" id="panel-battle-panel">
+      <div id="battle-area">
+        <div class="enemy-card" id="enemy-card">
+          <div class="enemy-name" id="enemy-name"></div>
+          <div class="enemy-realm" id="enemy-realm"></div>
+          <div class="progress-bar"><div class="fill fill-hp" id="enemy-hp-bar" style="width:100%"></div></div>
+          <div style="font-size:12px;color:var(--dim)" id="enemy-hp-text"></div>
+        </div>
+        <div id="skill-bar"></div>
+        <div id="battle-log" style="margin-top:8px;font-size:12px;max-height:150px;overflow-y:auto"></div>
+      </div>
+      <div id="no-battle" style="text-align:center;padding:30px;color:var(--dim)">
+        🕊️ 当前没有战斗<br>
+        <button class="btn btn-outline" style="margin-top:12px" onclick="exploreBattle()">🔍 寻找对手</button>
+      </div>
+    </div>
+
+    <!-- 装备面板 -->
+    <div class="panel" id="panel-equip">
+      <div class="card">
+        <h3>⚔️ 当前武器</h3>
+        <div id="current-weapon" style="padding:8px 0">空手</div>
+      </div>
+      <div class="card">
+        <h3>🎒 背包</h3>
+        <div id="inventory" style="max-height:350px;overflow-y:auto">空空如也</div>
+      </div>
+    </div>
+
+    <!-- 探索面板 -->
+    <div class="panel" id="panel-explore">
+      <div class="card">
+        <h3>🗺️ 秘境探索</h3>
+        <p style="font-size:12px;color:var(--dim);margin-bottom:8px">探索随机秘境，可能遭遇奇遇或危险</p>
+        <button class="btn btn-purple btn-block" onclick="doExplore()">🔮 探索秘境</button>
+      </div>
+      <div class="card">
+        <h3>📜 当前任务</h3>
+        <div id="quest-info" style="font-size:13px">无进行中的任务</div>
+      </div>
+    </div>
+
+    <!-- 坊市面板 -->
+    <div class="panel" id="panel-shop">
+      <div class="card">
+        <h3>🏪 仙域坊市</h3>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:4px">灵石: 💎 <span id="shop-sp">0</span></div>
+        <div class="item-list" id="shop-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-(function(){
-"use strict";
+// ═══════════════════ 修仙文字冒险 · 核心数据 ═══════════════════
 
-// ─── 常量 ───────────────────────────────
-const PLR_W = 28, PLR_H = 36;
-const GRAVITY = 0.30;
-const MOVE_SPEED = 2.5;
-const JUMP_SPEED = -6;
-const MAX_FALL = 6;
-const WORLD_H = 800;
-
-// ─── DOM ────────────────────────────────
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const btnLeft  = document.getElementById('btn-left');
-const btnRight = document.getElementById('btn-right');
-const btnJump  = document.getElementById('btn-jump');
-
-// ─── 输入状态 ───────────────────────────
-const input = { left: false, right: false, jump: false, jumpPressed: false };
-
-// ─── 关卡数据 ───────────────────────────
-// 类型: 'static'平台 'spike'尖刺 'moving'移动平台 'crumb'易碎 'coin'金币 'door'门
-const levels = [
-  { // 关卡1 - 绿色草原
-    name: '第一关 · 初入森林',
-    bgTop: '#87CEEB', bgBot: '#4a9e4a',
-    w: 2800,
-    playerSpawn: [80, 600],
-    entities: [
-      // 地面
-      { type:'static', x:0, y:680, w:500, h:120 },
-      { type:'static', x:580, y:700, w:350, h:100 },
-      { type:'static', x:1000, y:680, w:200, h:120 },
-      { type:'static', x:1350, y:660, w:300, h:140 },
-      { type:'static', x:1800, y:680, w:400, h:120 },
-      { type:'static', x:2350, y:650, w:450, h:150 },
-      // 浮空平台
-      { type:'static', x:420, y:570, w:120, h:20 },
-      { type:'static', x:620, y:480, w:140, h:20 },
-      { type:'static', x:900, y:520, w:130, h:20 },
-      { type:'static', x:1150, y:430, w:150, h:20 },
-      { type:'static', x:1450, y:500, w:120, h:20 },
-      { type:'static', x:1700, y:400, w:160, h:20 },
-      { type:'static', x:2000, y:480, w:140, h:20 },
-      { type:'static', x:2250, y:380, w:130, h:20 },
-      // 尖刺
-      { type:'spike', x:520, y:650, w:60 },
-      { type:'spike', x:940, y:650, w:50 },
-      { type:'spike', x:1200, y:660, w:70 },
-      { type:'spike', x:1650, y:640, w:50 },
-      { type:'spike', x:2100, y:650, w:60 },
-      // 金币
-      { type:'coin', x:460, y:520 }, { type:'coin', x:490, y:520 },
-      { type:'coin', x:660, y:440 }, { type:'coin', x:690, y:440 },
-      { type:'coin', x:950, y:480 }, { type:'coin', x:980, y:480 },
-      { type:'coin', x:1200, y:390 }, { type:'coin', x:1230, y:390 },
-      { type:'coin', x:1750, y:360 }, { type:'coin', x:1780, y:360 },
-      { type:'coin', x:2300, y:340 }, { type:'coin', x:2330, y:340 },
-      // 门
-      { type:'door', x:2700, y:610, w:44, h:60 },
-    ]
-  },
-  { // 关卡2 - 移动平台
-    name: '第二关 · 浮空遗迹',
-    bgTop: '#4a3f6b', bgBot: '#1a1030',
-    w: 3200,
-    playerSpawn: [80, 600],
-    entities: [
-      { type:'static', x:0, y:680, w:300, h:120 },
-      { type:'static', x:420, y:700, w:180, h:100 },
-      { type:'static', x:750, y:680, w:200, h:120 },
-      { type:'static', x:1100, y:650, w:250, h:150 },
-      { type:'static', x:1550, y:700, w:200, h:100 },
-      { type:'static', x:2000, y:670, w:300, h:130 },
-      { type:'static', x:2550, y:680, w:250, h:120 },
-      { type:'static', x:2950, y:640, w:250, h:160 },
-      // 浮空平台
-      { type:'static', x:350, y:545, w:100, h:18 },
-      { type:'static', x:600, y:430, w:120, h:18 },
-      { type:'static', x:1020, y:500, w:100, h:18 },
-      { type:'static', x:1400, y:420, w:130, h:18 },
-      { type:'static', x:1850, y:480, w:120, h:18 },
-      { type:'static', x:2350, y:400, w:140, h:18 },
-      { type:'static', x:2750, y:440, w:120, h:18 },
-      // 移动平台 (水平)
-      { type:'moving', x:520, y:400, w:90, h:18, dx:1.5, dy:0, rx:120 },
-      { type:'moving', x:850, y:380, w:90, h:18, dx:0, dy:1.2, ry:140 },
-      { type:'moving', x:1250, y:350, w:90, h:18, dx:1.8, dy:0, rx:150 },
-      { type:'moving', x:1700, y:380, w:90, h:18, dx:0, dy:-1.3, ry:130 },
-      { type:'moving', x:2150, y:340, w:90, h:18, dx:1.6, dy:0, rx:140 },
-      { type:'moving', x:2600, y:350, w:90, h:18, dx:0, dy:1.4, ry:120 },
-      // 易碎平台
-      { type:'crumb', x:680, y:500, w:80, h:16 },
-      { type:'crumb', x:1480, y:480, w:80, h:16 },
-      { type:'crumb', x:2200, y:450, w:80, h:16 },
-      // 尖刺
-      { type:'spike', x:320, y:650, w:55 },
-      { type:'spike', x:680, y:650, w:55 },
-      { type:'spike', x:980, y:650, w:60 },
-      { type:'spike', x:1380, y:680, w:65 },
-      { type:'spike', x:1800, y:650, w:55 },
-      { type:'spike', x:2350, y:640, w:60 },
-      { type:'spike', x:2850, y:650, w:60 },
-      // 金币
-      { type:'coin', x:390, y:490 }, { type:'coin', x:560, y:360 },
-      { type:'coin', x:640, y:390 }, { type:'coin', x:890, y:340 },
-      { type:'coin', x:1060, y:460 }, { type:'coin', x:1290, y:310 },
-      { type:'coin', x:1440, y:380 }, { type:'coin', x:1740, y:340 },
-      { type:'coin', x:2190, y:300 }, { type:'coin', x:2390, y:360 },
-      { type:'coin', x:2640, y:310 }, { type:'coin', x:2790, y:400 },
-      // 门
-      { type:'door', x:3100, y:600, w:44, h:60 },
-    ]
-  },
-  { // 关卡3 - 终极挑战
-    name: '第三关 · 熔岩深渊',
-    bgTop: '#3a1020', bgBot: '#0a0000',
-    w: 3800,
-    playerSpawn: [80, 600],
-    entities: [
-      { type:'static', x:0, y:680, w:220, h:120 },
-      { type:'static', x:350, y:700, w:160, h:100 },
-      { type:'static', x:640, y:670, w:180, h:130 },
-      { type:'static', x:960, y:690, w:200, h:110 },
-      { type:'static', x:1300, y:650, w:220, h:150 },
-      { type:'static', x:1680, y:680, w:200, h:120 },
-      { type:'static', x:2050, y:660, w:250, h:140 },
-      { type:'static', x:2500, y:680, w:300, h:120 },
-      { type:'static', x:3000, y:640, w:350, h:160 },
-      { type:'static', x:3500, y:660, w:300, h:140 },
-      // 浮空平台
-      { type:'static', x:280, y:530, w:90, h:16 },
-      { type:'static', x:500, y:420, w:100, h:16 },
-      { type:'static', x:800, y:480, w:110, h:16 },
-      { type:'static', x:1100, y:400, w:100, h:16 },
-      { type:'static', x:1450, y:440, w:120, h:16 },
-      { type:'static', x:1800, y:380, w:110, h:16 },
-      { type:'static', x:2200, y:420, w:100, h:16 },
-      { type:'static', x:2600, y:370, w:120, h:16 },
-      { type:'static', x:2950, y:420, w:110, h:16 },
-      { type:'static', x:3350, y:380, w:100, h:16 },
-      // 移动平台
-      { type:'moving', x:440, y:360, w:85, h:16, dx:1.6, dy:0, rx:130 },
-      { type:'moving', x:750, y:340, w:85, h:16, dx:0, dy:1.5, ry:120 },
-      { type:'moving', x:1060, y:300, w:85, h:16, dx:2.0, dy:0, rx:160 },
-      { type:'moving', x:1400, y:320, w:85, h:16, dx:0, dy:-1.6, ry:130 },
-      { type:'moving', x:1750, y:280, w:85, h:16, dx:1.7, dy:0, rx:150 },
-      { type:'moving', x:2150, y:300, w:85, h:16, dx:0, dy:1.6, ry:140 },
-      { type:'moving', x:2550, y:260, w:85, h:16, dx:2.0, dy:0, rx:170 },
-      { type:'moving', x:2900, y:300, w:85, h:16, dx:0, dy:-1.5, ry:130 },
-      // 易碎平台
-      { type:'crumb', x:580, y:480, w:75, h:14 },
-      { type:'crumb', x:1250, y:450, w:75, h:14 },
-      { type:'crumb', x:1950, y:420, w:75, h:14 },
-      { type:'crumb', x:2700, y:430, w:75, h:14 },
-      // 尖刺
-      { type:'spike', x:240, y:650, w:50 },
-      { type:'spike', x:550, y:660, w:55 },
-      { type:'spike', x:850, y:640, w:55 },
-      { type:'spike', x:1180, y:660, w:60 },
-      { type:'spike', x:1520, y:650, w:55 },
-      { type:'spike', x:1900, y:640, w:65 },
-      { type:'spike', x:2300, y:650, w:60 },
-      { type:'spike', x:2700, y:650, w:55 },
-      { type:'spike', x:3200, y:650, w:60 },
-      // 金币
-      { type:'coin', x:320, y:470 }, { type:'coin', x:540, y:380 },
-      { type:'coin', x:790, y:300 }, { type:'coin', x:840, y:440 },
-      { type:'coin', x:1100, y:260 }, { type:'coin', x:1140, y:360 },
-      { type:'coin', x:1440, y:280 }, { type:'coin', x:1490, y:400 },
-      { type:'coin', x:1790, y:240 }, { type:'coin', x:1840, y:340 },
-      { type:'coin', x:2240, y:380 }, { type:'coin', x:2640, y:330 },
-      { type:'coin', x:2990, y:380 }, { type:'coin', x:3390, y:340 },
-      // 门
-      { type:'door', x:3700, y:600, w:44, h:60 },
-    ]
-  }
+// ── 境界体系 ──
+const REALMS = [
+  { name:'凡人', exp:100, hp:100, mp:50, atk:10, def:5 },
+  { name:'炼气初期', exp:200, hp:150, mp:80, atk:22, def:12 },
+  { name:'炼气中期', exp:350, hp:200, mp:110, atk:35, def:20 },
+  { name:'炼气后期', exp:550, hp:280, mp:150, atk:50, def:30 },
+  { name:'筑基初期', exp:800, hp:400, mp:220, atk:70, def:45 },
+  { name:'筑基中期', exp:1200, hp:550, mp:300, atk:95, def:62 },
+  { name:'筑基后期', exp:1800, hp:750, mp:400, atk:125, def:85 },
+  { name:'金丹初期', exp:2800, hp:1100, mp:560, atk:170, def:115 },
+  { name:'金丹中期', exp:4200, hp:1600, mp:750, atk:230, def:155 },
+  { name:'金丹后期', exp:6500, hp:2400, mp:1000, atk:310, def:210 },
+  { name:'元婴初期', exp:10000, hp:3800, mp:1400, atk:420, def:290 },
+  { name:'元婴中期', exp:16000, hp:5800, mp:2000, atk:570, def:400 },
+  { name:'元婴后期', exp:25000, hp:8800, mp:2900, atk:780, def:550 },
+  { name:'化神初期', exp:40000, hp:14000, mp:4200, atk:1080, def:760 },
+  { name:'化神中期', exp:65000, hp:22000, mp:6000, atk:1500, def:1050 },
+  { name:'合体期',   exp:100000,hp:36000, mp:9000, atk:2100, def:1480 },
+  { name:'大乘期',   exp:180000,hp:60000, mp:14000,atk:3000, def:2100 },
+  { name:'渡劫期',   exp:350000,hp:100000,mp:22000,atk:4500, def:3100 },
+  { name:'真仙',     exp:999999,hp:999999,mp:99999,atk:9999,def:9999 },
 ];
 
-// ─── 游戏状态 ───────────────────────────
-let state = 'menu'; // menu | playing | dead | levelEnd | win
-let curLevel = 0;
-let score = 0;
-let lives = 5;
-let levelData = null;
-let player, camera;
-let particles = [];
-let shakeTimer = 0;
-let shakeIntensity = 0;
-let deadTimer = 0;
-let levelEndTimer = 0;
-let coinSpin = 0;
+// ── 武器库 ──
+const WEAPON_POOL = {
+  // 凡品
+  common: [
+    { name:'铁剑', icon:'🗡️', atk:8, bonus:'', quality:'凡品', qColor:'#aaa', cost:30 },
+    { name:'木杖', icon:'🪄', atk:6, bonus:'灵力+10', quality:'凡品', qColor:'#aaa', cost:25 },
+    { name:'石斧', icon:'🪓', atk:10, bonus:'暴击率+3%', quality:'凡品', qColor:'#aaa', cost:35 },
+    { name:'短刀', icon:'🔪', atk:7, bonus:'速度+5', quality:'凡品', qColor:'#aaa', cost:28 },
+    { name:'竹枪', icon:'🔱', atk:9, bonus:'破甲+2', quality:'凡品', qColor:'#aaa', cost:32 },
+  ],
+  // 灵品
+  uncommon: [
+    { name:'青冥剑', icon:'⚔️', atk:20, bonus:'剑意+15', quality:'灵品', qColor:'#5bab5b', cost:120 },
+    { name:'玄铁重剑', icon:'🗡️', atk:25, bonus:'防御+8', quality:'灵品', qColor:'#5bab5b', cost:150 },
+    { name:'碧波扇', icon:'🪭', atk:16, bonus:'灵力回复+3', quality:'灵品', qColor:'#5bab5b', cost:100 },
+    { name:'追月弓', icon:'🏹', atk:18, bonus:'暴击率+8%', quality:'灵品', qColor:'#5bab5b', cost:130 },
+    { name:'雷音锤', icon:'🔨', atk:22, bonus:'雷属性伤害', quality:'灵品', qColor:'#5bab5b', cost:140 },
+  ],
+  // 宝品
+  rare: [
+    { name:'斩龙剑', icon:'⚔️', atk:42, bonus:'龙族克星·攻击+30', quality:'宝品', qColor:'#4a80d0', cost:400 },
+    { name:'天罡斧', icon:'🪓', atk:50, bonus:'破甲+15·暴击+12%', quality:'宝品', qColor:'#4a80d0', cost:480 },
+    { name:'焚天枪', icon:'🔱', atk:46, bonus:'火属性·灼烧', quality:'宝品', qColor:'#4a80d0', cost:450 },
+    { name:'冰魄琴', icon:'🎸', atk:35, bonus:'冰冻·控制', quality:'宝品', qColor:'#4a80d0', cost:380 },
+    { name:'万魂幡', icon:'🏴', atk:44, bonus:'吸血+15%', quality:'宝品', qColor:'#4a80d0', cost:420 },
+  ],
+  // 仙品
+  epic: [
+    { name:'七星龙渊', icon:'🐉', atk:85, bonus:'七星剑阵·群攻', quality:'仙品', qColor:'#b85be0', cost:1200 },
+    { name:'开天斧', icon:'🌍', atk:100, bonus:'开天辟地·无视防御', quality:'仙品', qColor:'#b85be0', cost:1500 },
+    { name:'九曲黄河图', icon:'📜', atk:78, bonus:'阵法·封印', quality:'仙品', qColor:'#b85be0', cost:1100 },
+    { name:'诛仙剑', icon:'⚡', atk:95, bonus:'雷劫之力', quality:'仙品', qColor:'#b85be0', cost:1400 },
+  ],
+  // 神品
+  legend: [
+    { name:'盘古幡', icon:'🌟', atk:200, bonus:'混沌之力', quality:'神品', qColor:'#e0883a', cost:5000 },
+    { name:'造化玉碟', icon:'💿', atk:180, bonus:'造化万千', quality:'神品', qColor:'#e0883a', cost:4500 },
+    { name:'先天至宝·混沌钟', icon:'🔔', atk:220, bonus:'时空禁锢', quality:'神品', qColor:'#e0883a', cost:6000 },
+  ],
+};
 
-function initLevel(idx) {
-  levelData = JSON.parse(JSON.stringify(levels[idx]));
-  // 还原易碎平台
-  levelData.entities.forEach(e => {
-    if (e.type === 'crumb') e.alive = true;
-    if (e.type === 'moving') { e.ox = e.x; e.oy = e.y; }
-  });
-  player = {
-    x: levelData.playerSpawn[0], y: levelData.playerSpawn[1],
-    w: PLR_W, h: PLR_H,
-    vx: 0, vy: 0,
-    onGround: false,
-    onMovingPlatform: null,
-    facingRight: true,
+// ── 丹药库 ──
+const PILLS = [
+  { name:'回春丹', icon:'💊', effect:'hp', val:50, cost:15, desc:'恢复50生命' },
+  { name:'聚灵丹', icon:'💊', effect:'mp', val:30, cost:12, desc:'恢复30灵力' },
+  { name:'大还丹', icon:'💉', effect:'hp', val:150, cost:40, desc:'恢复150生命' },
+  { name:'筑基丹', icon:'🧪', effect:'exp', val:100, cost:80, desc:'增加100修为' },
+  { name:'凝神丹', icon:'🧬', effect:'mp', val:80, cost:35, desc:'恢复80灵力' },
+  { name:'金髓丸', icon:'🫙', effect:'buff', val:'atk', cost:60, desc:'临时提升攻击力30%' },
+];
+
+// ── 探索事件库 ──
+const EXPLORE_EVENTS = [
+  { text:'你在山洞中发现了一株千年灵芝！', effect:'heal', val:80, type:'loot' },
+  { text:'一道金光闪过，你捡到了前人遗留的灵石。', effect:'sp', val:30, type:'loot' },
+  { text:'山洞深处传来低语，你获得了一卷残缺功法。', effect:'exp', val:50, type:'loot' },
+  { text:'一位受伤的散修求你帮助，你分给他一些丹药。', effect:'sp', val:-10, type:'event', alt:'善举得福报，修为+30', altEff:'exp', altVal:30 },
+  { text:'前方出现妖兽！', effect:'battle', type:'danger' },
+  { text:'你发现了一扇古老的石门，上面刻着奇异符文。', effect:'exp', val:80, type:'loot' },
+  { text:'山谷中灵气浓郁，你在此打坐修炼了一番。', effect:'exp', val:40, type:'loot' },
+  { text:'一名魔修拦路打劫！', effect:'battle', type:'danger' },
+  { text:'你采到了一些珍稀药材。', effect:'sp', val:25, type:'loot' },
+  { text:'瀑布后隐藏着一个洞府，里面有一件宝物。', effect:'weapon', type:'loot' },
+  { text:'天空降下流星，落在不远处的山巅。', effect:'exp', val:100, type:'loot' },
+  { text:'一只灵兽幼崽跟着你不肯离去。', effect:'companion', type:'event' },
+  { text:'远古传送阵突然启动！', effect:'sp', val:60, type:'loot' },
+  { text:'你在溪边捡到了一枚玉佩，温热发光。', effect:'exp', val:35, type:'loot' },
+  { text:'黑暗中有东西在注视着你...', effect:'battle', type:'danger' },
+];
+
+// ── 剧情节点 ──
+const STORY_NODES = {
+  start: {
+    title:'序章·凡人之躯',
+    text:'你本是青山村的一名孤儿，自幼被村口铁匠收养。一日，你在后山砍柴时，忽然天降流星，一枚温热的玉佩坠入你怀中。玉佩中传来古老的意志...',
+    choices:[
+      { text:'紧握玉佩，接受命运', next:'accept' },
+      { text:'犹豫不决，仔细观察', next:'observe' },
+    ]
+  },
+  accept: {
+    title:'天选之人',
+    text:'玉佩中涌出磅礴灵力，你体内沉睡的灵根被唤醒。冥冥之中，你感应到千里之外的青云山上有仙门在召唤。你决定踏上修仙之路。',
+    choices:[
+      { text:'即刻出发', next:'journey', reward:{sp:20,exp:30} },
+    ]
+  },
+  observe: {
+    title:'谨慎为上',
+    text:'你小心翼翼地观察玉佩。玉佩上刻着四个古字——「天道酬勤」。突然，一股温和的灵力缓缓流入你的体内，你感到浑身充满了力量。',
+    choices:[
+      { text:'感谢天意，踏上仙途', next:'journey', reward:{sp:15,exp:40} },
+    ]
+  },
+  journey: {
+    title:'踏入山门',
+    text:'历经三天跋涉，你来到青云山脚下。山门巍峨，云雾缭绕。守门弟子见你身怀灵根，引你拜入青云剑宗，成为外门弟子。从此，你的修仙之路正式开启。',
+    choices:[
+      { text:'努力修炼，不负天意', next:'done', reward:{sp:50,exp:60,weapon:'铁剑'} },
+    ]
+  },
+  done: { title:'', text:'', choices:[] }
+};
+
+// ── 主线任务链 ──
+const QUEST_LINE = [
+  { realm:0, title:'初窥门径', desc:'修为达到炼气初期', check:(g)=>g.realm>=1, reward:'灵石+100' },
+  { realm:3, title:'小有所成', desc:'修为达到炼气后期', check:(g)=>g.realm>=3, reward:'灵石+300，获得灵品武器' },
+  { realm:4, title:'筑基大道', desc:'突破至筑基期', check:(g)=>g.realm>=4, reward:'灵石+800，获得宝品武器' },
+  { realm:7, title:'金丹真人', desc:'凝成金丹', check:(g)=>g.realm>=7, reward:'灵石+2000，获得仙品武器' },
+  { realm:10,title:'元婴老怪', desc:'化婴成功', check:(g)=>g.realm>=10, reward:'灵石+5000' },
+  { realm:18,title:'飞升成仙', desc:'渡劫飞升', check:(g)=>g.realm>=18, reward:'恭喜通关！' },
+];
+
+// ═══════════════════ 游戏状态 ═══════════════════
+const G = {
+  name:'无名修士',
+  realm:0, // REALMS索引
+  exp:0,
+  hp:100, maxHp:100,
+  mp:50, maxMp:50,
+  atk:10, def:5,
+  baseAtk:10, baseDef:5,
+  sen:5, ins:10, bone:8,
+  element:'金',
+  sp:0, // 灵石
+  weapon:null, // 装备的武器对象
+  inventory:[], // 背包(武器+丹药)
+  questIdx:0,
+  storyDone:false,
+  buffs:{}, // {atkBoost:3} 剩余回合
+};
+
+let inBattle = false;
+let enemy = null;
+let battleTurn = 0;
+let currentTab = 'main';
+
+// ═══════════════════ 核心函数 ═══════════════════
+
+function r(n){ return Math.floor(Math.random()*n) }
+function pick(arr){ return arr[r(arr.length)] }
+
+function realmData(){ return REALMS[G.realm] }
+function recalcStats(){
+  const rd = realmData();
+  G.maxHp = rd.hp + (G.weapon?.hpBonus||0);
+  G.maxMp = rd.mp + (G.weapon?.mpBonus||0);
+  G.baseAtk = rd.atk + (G.weapon?.atk||0);
+  G.baseDef = rd.def + (G.weapon?.defBonus||0);
+  G.atk = G.baseAtk; G.def = G.baseDef;
+  if(G.buffs.atkBoost>0) G.atk = Math.floor(G.atk*1.3);
+  if(G.buffs.defBoost>0) G.def = Math.floor(G.def*1.3);
+  if(G.hp > G.maxHp) G.hp = G.maxHp;
+  if(G.mp > G.maxMp) G.mp = G.maxMp;
+}
+
+function addLog(msg, cls=''){
+  const div = document.createElement('div');
+  div.className = 'log-entry ' + (cls||'');
+  div.textContent = msg;
+  const log = document.getElementById('log');
+  log.appendChild(div);
+  // 限制日志数量
+  while(log.children.length > 50) log.removeChild(log.firstChild);
+  document.getElementById('content').scrollTop = 0;
+}
+
+function canAfford(n){ return G.sp >= n }
+
+function equipWeapon(w){
+  if(G.weapon){
+    G.inventory.push(G.weapon);
+    addLog(`卸下 ${G.weapon.icon} ${G.weapon.name}`,'sys');
+  }
+  G.weapon = w;
+  // 从背包移除
+  const idx = G.inventory.findIndex(i=>i===w);
+  if(idx>=0) G.inventory.splice(idx,1);
+  recalcStats();
+  addLog(`装备 ${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}] ${w.atk?`攻击+${w.atk}`:''} ${w.bonus}`,'loot');
+}
+
+function gainExp(amt){
+  G.exp += amt;
+  const rd = realmData();
+  if(G.realm >= REALMS.length-1){ G.exp=0; return; }
+  while(G.exp >= rd.exp && G.realm < REALMS.length-1){
+    G.exp -= rd.exp;
+    G.realm++;
+    const newRd = REALMS[G.realm];
+    G.hp = newRd.hp; G.mp = newRd.mp;
+    recalcStats();
+    addLog(`🌟 突破！晋升 <span class="c-rare">${newRd.name}</span>！`,'break');
+    checkQuest();
+    if(G.realm===4) addLog('📜 你成功筑基，寿元大增，在宗门中的地位大幅提升。','sys');
+    if(G.realm===7) addLog('📜 金丹大成！天空中降下金色光柱，你感受到了天地法则的脉动。','sys');
+    if(G.realm===10) addLog('📜 元婴凝结！你的神魂可以离体遨游，天下之大皆可去得。','sys');
+    if(G.realm===18) addLog('🏆 恭喜飞升成仙！你已超脱三界，位列仙班！','break');
+  }
+  refreshUI();
+}
+
+function checkQuest(){
+  const q = QUEST_LINE[G.questIdx];
+  if(q && q.check(G)){
+    addLog(`✅ 任务完成：<span class="c-gold">${q.title}</span> — ${q.reward}`,'loot');
+    if(q.realm===3 && !G.weapon) equipRandomWeapon('uncommon');
+    if(q.realm===4 && (!G.weapon || G.weapon.quality==='凡品'||G.weapon.quality==='灵品')) equipRandomWeapon('rare');
+    if(q.realm===7) { G.sp+=2000; equipRandomWeapon('epic'); }
+    if(G.questIdx===4) G.sp+=5000;
+    G.questIdx++;
+  }
+}
+
+function equipRandomWeapon(tier){
+  const pool = WEAPON_POOL[tier];
+  if(!pool) return;
+  const w = {...pick(pool)};
+  G.inventory.push(w);
+  equipWeapon(w);
+}
+
+// ═══════════════════ 修炼 ═══════════════════
+function doMeditate(){
+  if(inBattle){ addLog('战斗中无法修炼！','danger'); return; }
+  const cost = 15;
+  if(G.mp < cost){ addLog('灵力不足，无法修炼！','danger'); return; }
+  G.mp -= cost;
+  const gain = 10 + G.ins + r(15);
+  gainExp(gain);
+  addLog(`🧘 你静心修炼，获得了 <span class="c-gold">${gain}</span> 修为。`,'sys');
+  refreshUI();
+}
+
+function doAbsorb(){
+  if(inBattle){ addLog('战斗中无法吸收灵石！','danger'); return; }
+  if(G.sp < 10){ addLog('灵石不足！（需要10灵石）','danger'); return; }
+  G.sp -= 10;
+  const gain = 35 + G.bone + r(20);
+  gainExp(gain);
+  addLog(`💎 你吸收灵石中的灵力，获得 <span class="c-gold">${gain}</span> 修为。`,'sys');
+  refreshUI();
+}
+
+// ═══════════════════ 探索 ═══════════════════
+function doExplore(){
+  if(inBattle){ addLog('先结束战斗再探索！','danger'); return; }
+  const evt = pick(EXPLORE_EVENTS);
+  if(evt.effect==='battle'){
+    exploreBattle();
+    return;
+  }
+  if(evt.effect==='heal'){ G.hp = Math.min(G.maxHp, G.hp+evt.val); addLog(evt.text+` (恢复${evt.val}生命)`,'loot'); }
+  if(evt.effect==='sp'){ G.sp += evt.val; addLog(evt.text,'loot'); }
+  if(evt.effect==='exp'){ addLog(evt.text,'loot'); gainExp(evt.val); }
+  if(evt.effect==='weapon'){
+    const tiers = ['common','common','uncommon','uncommon','rare'];
+    const tier = tiers[r(tiers.length)];
+    const w = {...pick(WEAPON_POOL[tier])};
+    G.inventory.push(w);
+    addLog(`${evt.text} 获得 ${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}]`,'loot');
+  }
+  if(evt.effect==='event'){
+    if(evt.alt && r(2)===0){
+      addLog(evt.alt,'sys');
+      if(evt.altEff==='exp') gainExp(evt.altVal);
+    } else {
+      if(evt.val<0){ G.sp = Math.max(0, G.sp+evt.val); }
+    }
+    addLog(evt.text,'sys');
+  }
+  refreshUI();
+}
+
+function exploreBattle(){
+  const rl = Math.max(0, G.realm-1+r(4));
+  const rdEnemy = REALMS[Math.min(rl, REALMS.length-2)];
+  const names = ['山贼', '妖兽·赤练蛇', '魔修', '石傀儡', '血蝙蝠', '尸鬼', '千年树妖', '剑灵残影', '阴煞', '妖狼'];
+  enemy = {
+    name: pick(names),
+    realm: rdEnemy.name,
+    hp: rdEnemy.hp + r(Math.floor(rdEnemy.hp*0.3)),
+    maxHp: rdEnemy.hp + r(Math.floor(rdEnemy.hp*0.3)),
+    atk: rdEnemy.atk + r(Math.floor(rdEnemy.atk*0.3)),
+    def: rdEnemy.def + r(Math.floor(rdEnemy.def*0.2)),
+    spReward: 15 + rl*8 + r(30),
+    expReward: 30 + rl*12 + r(40),
   };
-  camera = { x: 0, y: 0, tx: 0, ty: 0 };
-  particles = [];
-  shakeTimer = 0;
-  shakeIntensity = 0;
+  enemy.maxHp = enemy.hp;
+  inBattle = true;
+  battleTurn = 0;
+  document.getElementById('no-battle').style.display = 'none';
+  document.getElementById('battle-area').classList.add('active');
+  switchTab('battle-panel');
+  updateBattleUI();
+  addLog(`⚔️ 遭遇 <span class="c-danger">${enemy.name}</span>（${enemy.realm}）！`,'combat');
 }
+// ═══════════════════ 战斗 ═══════════════════
+const SKILLS = [
+  { name:'普通攻击', icon:'⚔️', mp:0, dmg:1.0, desc:'基础攻击', color:'btn-blue' },
+  { name:'全力一击', icon:'💥', mp:20, dmg:1.8, desc:'消耗20灵力·高伤害', color:'btn-red' },
+  { name:'剑气纵横', icon:'🌀', mp:30, dmg:1.4, desc:'消耗30灵力·范围斩击', color:'btn-purple', aoe:true },
+  { name:'防御姿态', icon:'🛡️', mp:10, dmg:0.3, desc:'消耗10灵力·提升防御2回合', color:'btn-green', buff:'defBoost', buffVal:3 },
+  { name:'嗜血狂攻', icon:'🩸', mp:35, dmg:2.2, desc:'消耗35灵力·暴击伤害', color:'btn-red', crit:true },
+];
 
-function resetGame() {
-  curLevel = 0;
-  score = 0;
-  lives = 5;
-  initLevel(0);
-  state = 'menu';
-}
-
-// ─── 碰撞检测辅助 ──────────────────────
-function aabbOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x &&
-         a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-function rectCircleOverlap(rx, ry, rw, rh, cx, cy, cr) {
-  const closestX = Math.max(rx, Math.min(cx, rx + rw));
-  const closestY = Math.max(ry, Math.min(cy, ry + rh));
-  const dx = cx - closestX;
-  const dy = cy - closestY;
-  return (dx * dx + dy * dy) < (cr * cr);
-}
-
-// ─── 粒子系统 ──────────────────────────
-function spawnParticles(x, y, count, color, spread) {
-  for (let i = 0; i < count; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 1 + Math.random() * spread;
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 3,
-      life: 1,
-      decay: 0.02 + Math.random() * 0.04,
-      color,
-      size: 2 + Math.random() * 4,
-    });
+function doSkill(idx){
+  if(!inBattle) return;
+  const sk = SKILLS[idx];
+  if(G.mp < sk.mp){ addLog(`灵力不足！（需要${sk.mp}）`,'danger'); updateBattleUI(); return; }
+  G.mp -= sk.mp;
+  // 计算伤害
+  let dmg = Math.floor(G.atk * sk.dmg);
+  // crit
+  if(sk.crit || r(100) < 3 + G.sen){
+    dmg = Math.floor(dmg * 1.8);
+    addLog(`🎯 暴击！`,'combat');
   }
-}
-
-function updateParticles() {
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.15;
-    p.life -= p.decay;
-    if (p.life <= 0) particles.splice(i, 1);
+  // aoe bonus
+  if(sk.aoe){ dmg = Math.floor(dmg * 1.15); }
+  dmg = Math.max(1, dmg - Math.floor(enemy.def*0.3));
+  dmg += r(6) - 3;
+  dmg = Math.max(1, dmg);
+  enemy.hp -= dmg;
+  addLog(`你使用 <span class="c-accent">${sk.name}</span>，对${enemy.name}造成 <span class="c-danger">${dmg}</span> 伤害。`,'combat');
+  // buff
+  if(sk.buff){
+    G.buffs[sk.buff] = (G.buffs[sk.buff]||0) + sk.buffVal;
+    recalcStats();
+    addLog(`🛡️ 防御提升！持续${sk.buffVal}回合`,'sys');
   }
-}
 
-function drawParticles(ctx, camX, camY) {
-  for (const p of particles) {
-    const alpha = p.life;
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x - p.size/2 - camX, p.y - p.size/2 - camY, p.size, p.size);
-  }
-  ctx.globalAlpha = 1;
-}
-
-// ─── 游戏更新 ──────────────────────────
-function update() {
-  if (state === 'menu') return;
-  if (state === 'dead') {
-    deadTimer--;
-    updateParticles();
-    if (shakeTimer > 0) shakeTimer--;
-    if (deadTimer <= 0) {
-      if (lives <= 0) {
-        resetGame();
-        state = 'menu';
-      } else {
-        initLevel(curLevel);
-        state = 'playing';
-      }
-    }
+  if(enemy.hp <= 0){
+    winBattle();
     return;
   }
-  if (state === 'levelEnd') {
-    levelEndTimer--;
-    updateParticles();
-    if (levelEndTimer <= 0) {
-      curLevel++;
-      if (curLevel >= levels.length) {
-        state = 'win';
-      } else {
-        initLevel(curLevel);
-        state = 'playing';
-      }
-    }
+
+  // 敌人回合
+  enemyTurn();
+  updateBattleUI();
+}
+
+function enemyTurn(){
+  const eDmg = Math.max(1, enemy.atk - Math.floor(G.def*0.4) + r(8) - 4);
+  G.hp -= eDmg;
+  addLog(`${enemy.name} 攻击你，造成 <span class="c-danger">${eDmg}</span> 伤害。`,'combat');
+  if(G.hp <= 0){
+    G.hp = 0;
+    addLog('💀 你被击败了！损失了一些灵石...','danger');
+    G.sp = Math.max(0, G.sp - Math.floor(G.sp*0.3));
+    G.hp = Math.floor(G.maxHp*0.5);
+    endBattle();
     return;
   }
-  if (state === 'win') return;
-  if (state !== 'playing') return;
-
-  // ── 输入处理 ──
-  if (input.jump && input.jumpPressed && player.onGround) {
-    player.vy = JUMP_SPEED;
-    player.onGround = false;
-    player.onMovingPlatform = null;
-    input.jumpPressed = false;
+  // 衰减buff
+  for(const k in G.buffs){
+    G.buffs[k]--;
+    if(G.buffs[k]<=0) delete G.buffs[k];
   }
-  if (!input.jump) input.jumpPressed = true;
+  recalcStats();
+}
 
-  if (input.left) {
-    player.vx = -MOVE_SPEED;
-    player.facingRight = false;
-  } else if (input.right) {
-    player.vx = MOVE_SPEED;
-    player.facingRight = true;
+function winBattle(){
+  addLog(`🎉 击败了 <span class="c-danger">${enemy.name}</span>！`,'loot');
+  G.sp += enemy.spReward;
+  addLog(`获得灵石 <span class="c-gold">+${enemy.spReward}</span>`,'loot');
+  gainExp(enemy.expReward);
+  addLog(`获得修为 <span class="c-gold">+${enemy.expReward}</span>`,'loot');
+  // 概率掉落
+  if(r(5)===0){
+    const tiers = ['common','common','uncommon'];
+    if(G.realm>=4) tiers.push('rare');
+    if(G.realm>=7) tiers.push('epic');
+    const tier = tiers[r(tiers.length)];
+    const w = {...pick(WEAPON_POOL[tier])};
+    G.inventory.push(w);
+    addLog(`🎁 掉落武器：${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}]`,'loot');
+  }
+  endBattle();
+}
+
+function endBattle(){
+  inBattle = false;
+  enemy = null;
+  document.getElementById('no-battle').style.display = '';
+  document.getElementById('battle-area').classList.remove('active');
+  // 回到主页
+  switchTab('main');
+  refreshUI();
+}
+
+function updateBattleUI(){
+  if(!enemy) return;
+  document.getElementById('enemy-name').textContent = enemy.name;
+  document.getElementById('enemy-realm').textContent = enemy.realm;
+  const pct = Math.max(0, Math.floor(enemy.hp/enemy.maxHp*100));
+  document.getElementById('enemy-hp-bar').style.width = pct+'%';
+  document.getElementById('enemy-hp-text').textContent = `❤️ ${enemy.hp} / ${enemy.maxHp}`;
+  // 技能栏
+  const bar = document.getElementById('skill-bar');
+  bar.innerHTML = SKILLS.map((sk,i)=>{
+    const disabled = G.mp < sk.mp ? 'disabled style="opacity:0.5"' : '';
+    return `<button class="btn ${sk.color} btn-sm" onclick="doSkill(${i})" ${disabled}>${sk.icon} ${sk.name}<br><small>${sk.desc}</small></button>`;
+  }).join('');
+}
+
+// ═══════════════════ UI刷新 ═══════════════════
+function refreshUI(){
+  const rd = realmData();
+  document.getElementById('p-name').textContent = G.name;
+  document.getElementById('p-realm').textContent = rd.name;
+  document.getElementById('p-hp').textContent = `${G.hp}/${G.maxHp}`;
+  document.getElementById('p-sp').textContent = G.sp;
+  // 头像
+  const avatars = ['🧘','🧙','🧝','🧞','🦸','🧛','🧜','🦹','👼','🧚','🦸‍♂️','🧝‍♂️','👨‍🔬','🦹‍♂️','🧙‍♂️','👑','🔮','✨','🌟'];
+  document.getElementById('avatar-icon').textContent = avatars[Math.min(G.realm, avatars.length-1)];
+
+  // 主面板
+  document.getElementById('exp-text').textContent = `${G.exp} / ${rd.exp}`;
+  document.getElementById('exp-bar').style.width = Math.min(100, Math.floor(G.exp/rd.exp*100))+'%';
+  document.getElementById('stat-hp').textContent = `${G.hp}/${G.maxHp}`;
+  document.getElementById('stat-mp').textContent = `${G.mp}/${G.maxMp}`;
+  document.getElementById('stat-atk').textContent = G.atk;
+  document.getElementById('stat-def').textContent = G.def;
+  document.getElementById('stat-sen').textContent = G.sen;
+  document.getElementById('stat-ins').textContent = G.ins;
+  document.getElementById('stat-bone').textContent = G.bone;
+
+  // 装备面板
+  const weDiv = document.getElementById('current-weapon');
+  if(G.weapon){
+    weDiv.innerHTML = `<span class="${G.weapon.qColor}" style="font-weight:bold">${G.weapon.icon} ${G.weapon.name}</span>
+      <span style="color:var(--dim);margin-left:8px">[${G.weapon.quality}]</span>
+      <br><span style="font-size:12px">${G.weapon.bonus} · 攻击+${G.weapon.atk||0}</span>`;
   } else {
-    player.vx *= 0.7;
-    if (Math.abs(player.vx) < 0.1) player.vx = 0;
+    weDiv.textContent = '空手';
   }
-
-  // ── 移动平台更新 ──
-  const movingPlatforms = levelData.entities.filter(e => e.type === 'moving');
-  const oldMPositions = movingPlatforms.map(mp => ({ mp, x: mp.x, y: mp.y }));
-
-  for (const mp of movingPlatforms) {
-    mp.x += mp.dx;
-    mp.y += mp.dy;
-    if (mp.rx && (mp.x <= mp.ox - mp.rx || mp.x >= mp.ox + mp.rx)) mp.dx *= -1;
-    if (mp.ry && (mp.y <= mp.oy - mp.ry || mp.y >= mp.oy + mp.ry)) mp.dy *= -1;
-  }
-
-  // ── 玩家随移动平台移动 ──
-  if (player.onMovingPlatform) {
-    const oldMP = oldMPositions.find(o => o.mp === player.onMovingPlatform);
-    if (oldMP) {
-      player.x += (player.onMovingPlatform.x - oldMP.x);
-      player.y += (player.onMovingPlatform.y - oldMP.y);
-    }
-  }
-
-  // ── 重力 ──
-  player.vy += GRAVITY;
-  if (player.vy > MAX_FALL) player.vy = MAX_FALL;
-
-  // ── 水平移动 ──
-  player.x += player.vx;
-  // 水平碰撞
-  const allSolids = levelData.entities.filter(e =>
-    e.type === 'static' || e.type === 'moving' || (e.type === 'crumb' && e.alive)
-  );
-  for (const s of allSolids) {
-    const pw = s.w || s.type === 'moving' ? (s.w || 90) : (s.w || 80);
-    const ph = s.h || (s.type === 'moving' ? (s.h || 18) : (s.h || 16));
-    if (aabbOverlap(player, { x: s.x, y: s.y, w: pw, h: ph })) {
-      if (player.vx > 0) {
-        player.x = s.x - player.w;
-      } else if (player.vx < 0) {
-        player.x = s.x + pw;
+  const invDiv = document.getElementById('inventory');
+  if(G.inventory.length===0){
+    invDiv.innerHTML = '<span style="color:var(--dim)">空空如也</span>';
+  } else {
+    invDiv.innerHTML = G.inventory.map((item,i)=>{
+      if(item.atk!==undefined){
+        // 武器
+        return `<div class="equip-item">
+          <span class="q-icon">${item.icon}</span>
+          <div class="q-info"><div class="q-name" style="color:${item.qColor||'#ccc'}">${item.name} [${item.quality}]</div>
+          <div class="q-stat">攻击+${item.atk} ${item.bonus}</div></div>
+          <button class="btn btn-gold btn-sm" onclick="equipInventory(${i})">装备</button>
+        </div>`;
+      } else {
+        // 丹药
+        return `<div class="equip-item">
+          <span class="q-icon">${item.icon}</span>
+          <div class="q-info"><div class="q-name">${item.name}</div>
+          <div class="q-stat">${item.desc}</div></div>
+          <button class="btn btn-green btn-sm" onclick="usePill(${i})">使用</button>
+        </div>`;
       }
-      player.vx = 0;
-    }
+    }).join('');
   }
 
-  // ── 垂直移动 ──
-  player.y += player.vy;
-  player.onGround = false;
-  player.onMovingPlatform = null;
+  // 探索面板
+  const q = QUEST_LINE[G.questIdx];
+  document.getElementById('quest-info').innerHTML = q
+    ? `<b>${q.title}</b><br><span style="color:var(--dim)">${q.desc}</span>`
+    : '🏆 所有任务已完成！';
 
-  for (const s of allSolids) {
-    const pw = s.w || (s.type === 'moving' ? 90 : 80);
-    const ph = s.h || (s.type === 'moving' ? 18 : 16);
-    if (aabbOverlap(player, { x: s.x, y: s.y, w: pw, h: ph })) {
-      if (player.vy > 0) {
-        // 落在平台上方
-        player.y = s.y - player.h;
-        player.vy = 0;
-        player.onGround = true;
-        if (s.type === 'moving') player.onMovingPlatform = s;
-        // 易碎平台
-        if (s.type === 'crumb' && s.alive) {
-          s.alive = false;
-          spawnParticles(s.x + pw/2, s.y + ph/2, 8, '#aaa', 2);
+  // 商店
+  document.getElementById('shop-sp').textContent = G.sp;
+  const shopDiv = document.getElementById('shop-list');
+  const allWeapons = [
+    ...WEAPON_POOL.common.map(w=>({...w,tier:'common'})),
+    ...WEAPON_POOL.uncommon.map(w=>({...w,tier:'uncommon'})),
+    ...WEAPON_POOL.rare.map(w=>({...w,tier:'rare'})),
+  ];
+  if(G.realm>=7) allWeapons.push(...WEAPON_POOL.epic.map(w=>({...w,tier:'epic'})));
+  if(G.realm>=13) allWeapons.push(...WEAPON_POOL.legend.map(w=>({...w,tier:'legend'})));
+  shopDiv.innerHTML = allWeapons.map((w,i)=>{
+    const aff = canAfford(w.cost) ? '' : 'style="opacity:0.4"';
+    return `<div class="item-row" ${aff}>
+      <span>${w.icon} <span style="color:${w.qColor}">${w.name}</span> <span class="c-dim">[${w.quality}]</span><br><small class="c-dim">攻击+${w.atk} ${w.bonus}</small></span>
+      <button class="btn btn-gold btn-sm item-cost" onclick="buyWeapon('${w.tier}',${i})" ${!canAfford(w.cost)?'disabled':''}>💎${w.cost}</button>
+    </div>`;
+  }).join('');
+
+  // 丹药区追加到商店
+  shopDiv.innerHTML += '<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px"><b>🧪 丹药</b></div>';
+  shopDiv.innerHTML += PILLS.map((p,i)=>{
+    const aff = canAfford(p.cost) ? '' : 'style="opacity:0.4"';
+    return `<div class="item-row" ${aff}>
+      <span>${p.icon} ${p.name}<br><small class="c-dim">${p.desc}</small></span>
+      <button class="btn btn-green btn-sm item-cost" onclick="buyPill(${i})" ${!canAfford(p.cost)?'disabled':''}>💎${p.cost}</button>
+    </div>`;
+  }).join('');
+
+  updateBattleUI();
+}
+
+function equipInventory(idx){
+  const item = G.inventory[idx];
+  if(!item || item.atk===undefined) return;
+  equipWeapon(item);
+  refreshUI();
+}
+
+function usePill(idx){
+  const item = G.inventory[idx];
+  if(!item || item.atk!==undefined) return;
+  if(item.effect==='hp'){ G.hp = Math.min(G.maxHp, G.hp+item.val); addLog(`使用 ${item.name}，恢复${item.val}生命`,'heal'); }
+  if(item.effect==='mp'){ G.mp = Math.min(G.maxMp, G.mp+item.val); addLog(`使用 ${item.name}，恢复${item.val}灵力`,'heal'); }
+  if(item.effect==='exp'){ gainExp(item.val); addLog(`使用 ${item.name}，获得${item.val}修为`,'loot'); }
+  if(item.effect==='buff'){ G.buffs.atkBoost=(G.buffs.atkBoost||0)+5; recalcStats(); addLog(`使用 ${item.name}，攻击力提升30%持续5回合`,'sys'); }
+  G.inventory.splice(idx,1);
+  refreshUI();
+}
+
+function buyWeapon(tier, idx){
+  const pool = WEAPON_POOL[tier];
+  if(!pool) return;
+  const w = pool[idx];
+  if(!canAfford(w.cost)){ addLog('灵石不足！','danger'); return; }
+  G.sp -= w.cost;
+  const newW = {...w};
+  G.inventory.push(newW);
+  addLog(`购买 ${newW.icon} <span class="c-gold">${newW.name}</span> [${newW.quality}]`,'loot');
+  refreshUI();
+}
+
+function buyPill(idx){
+  const p = PILLS[idx];
+  if(!canAfford(p.cost)){ addLog('灵石不足！','danger'); return; }
+  G.sp -= p.cost;
+  G.inventory.push({...p});
+  addLog(`购买 ${p.icon} ${p.name}`,'loot');
+  refreshUI();
+}
+
+// ═══════════════════ 标签切换 ═══════════════════
+function switchTab(name){
+  currentTab = name;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`)?.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const panelMap = { main:'panel-main', 'battle-panel':'panel-battle-panel', equip:'panel-equip', explore:'panel-explore', shop:'panel-shop' };
+  const panelId = panelMap[name];
+  if(panelId) document.getElementById(panelId)?.classList.add('active');
+  if(name==='battle-panel' && !inBattle){
+    document.getElementById('no-battle').style.display = '';
+    document.getElementById('battle-area').classList.remove('active');
+  }
+  refreshUI();
+}
+
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab = btn.dataset.tab;
+    if(tab==='battle-panel' && !inBattle){
+      // 如果没有战斗，切换到战斗面板显示寻找对手
+    }
+    switchTab(tab);
+  });
+});
+
+// ═══════════════════ 初始化 ═══════════════════
+function initGame(){
+  recalcStats();
+  // 初始剧情
+  if(!G.storyDone){
+    addLog('📜 ' + STORY_NODES.start.title,'break');
+    addLog(STORY_NODES.start.text,'sys');
+    // 自动选择第一个选项开始
+    const node = STORY_NODES.accept;
+    addLog('📜 ' + node.title,'break');
+    addLog(node.text,'sys');
+    if(node.reward){
+      G.sp += node.reward.sp||0;
+      gainExp(node.reward.exp||0);
+    }
+    const jNode = STORY_NODES.journey;
+    addLog('📜 ' + jNode.title,'break');
+    addLog(jNode.text,'sys');
+    if(jNode.reward){
+      G.sp += jNode.reward.sp||0;
+      gainExp(jNode.reward.exp||0);
+      if(jNode.reward.weapon){
+        const w = WEAPON_POOL.common.find(w=>w.name===jNode.reward.weapon);
+        if(w){
+          const nw = {...w};
+          G.inventory.push(nw);
+          equipWeapon(nw);
         }
-      } else if (player.vy < 0) {
-        // 头顶碰到
-        player.y = s.y + ph;
-        player.vy = 0;
       }
     }
+    G.storyDone = true;
   }
+  refreshUI();
+}
 
-  // ── 尖刺检测 ──
-  const spikes = levelData.entities.filter(e => e.type === 'spike');
-  const spikeHitboxH = 22; // 尖刺有效碰撞高度
-  for (const sp of spikes) {
-    const sh = spikeHitboxH;
-    const sw = sp.w;
-    const sx = sp.x;
-    const sy = sp.y - sh;
-    if (aabbOverlap(player, { x: sx, y: sy, w: sw, h: sh })) {
-      killPlayer();
-      return;
+initGame();
+
+// ═══════════════════ 自动恢复 ═══════════════════
+setInterval(()=>{
+  if(inBattle) return;
+  if(G.mp < G.maxMp){ G.mp = Math.min(G.maxMp, G.mp + 2); }
+  if(G.hp < G.maxHp){ G.hp = Math.min(G.maxHp, G.hp + 1); }
+  // buff衰减
+  if(!inBattle){
+    for(const k in G.buffs){
+      G.buffs[k]--;
+      if(G.buffs[k]<=0) delete G.buffs[k];
     }
+    recalcStats();
   }
+  refreshUI();
+}, 3000);
 
-  // ── 掉落死亡 ──
-  if (player.y > WORLD_H + 60) {
-    killPlayer();
-    return;
-  }
-
-  // ── 金币收集 ──
-  const coins = levelData.entities.filter(e => e.type === 'coin');
-  for (let i = coins.length - 1; i >= 0; i--) {
-    const c = coins[i];
-    if (rectCircleOverlap(player.x, player.y, player.w, player.h, c.x, c.y, 10)) {
-      score += 10;
-      spawnParticles(c.x, c.y, 5, '#FFD700', 2);
-      levelData.entities.splice(levelData.entities.indexOf(c), 1);
-    }
-  }
-
-  // ── 门检测 ──
-  const door = levelData.entities.find(e => e.type === 'door');
-  if (door && aabbOverlap(player, { x: door.x, y: door.y, w: door.w, h: door.h })) {
-    state = 'levelEnd';
-    levelEndTimer = 90;
-    spawnParticles(door.x + door.w/2, door.y + door.h/2, 20, '#FFD700', 4);
-    spawnParticles(door.x + door.w/2, door.y + door.h/2, 15, '#fff', 3);
-  }
-
-  // ── 摄像机 ──
-  camera.tx = player.x + player.w/2 - canvas.width / 2;
-  camera.ty = player.y + player.h/2 - canvas.height * 0.45;
-  // 摄像机看向前方
-  if (player.facingRight) camera.tx += 60;
-  else camera.tx -= 60;
-  camera.tx = Math.max(0, Math.min(camera.tx, levelData.w - canvas.width));
-  camera.ty = Math.max(0, Math.min(camera.ty, WORLD_H - canvas.height));
-  camera.x += (camera.tx - camera.x) * 0.12;
-  camera.y += (camera.ty - camera.y) * 0.12;
-  coinSpin += 0.05;
-
-  // ── 震屏衰减 ──
-  if (shakeTimer > 0) shakeTimer--;
-
-  updateParticles();
-}
-
-function killPlayer() {
-  lives--;
-  spawnParticles(player.x + player.w/2, player.y + player.h/2, 15, '#e74c3c', 3);
-  shakeTimer = 12;
-  shakeIntensity = 8;
-  state = 'dead';
-  deadTimer = 60;
-}
-
-// ─── 渲染 ──────────────────────────────
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  let sx = 0, sy = 0;
-  if (shakeTimer > 0) {
-    const s = shakeIntensity * (shakeTimer / 12);
-    sx = (Math.random() - 0.5) * s * 2;
-    sy = (Math.random() - 0.5) * s * 2;
-  }
-
-  const cx = camera.x + sx;
-  const cy = camera.y + sy;
-
-  if (state === 'menu') {
-    drawMenu();
-    return;
-  }
-  if (state === 'win') {
-    drawWin();
-    return;
-  }
-
-  // 背景
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bgGrad.addColorStop(0, levelData.bgTop);
-  bgGrad.addColorStop(1, levelData.bgBot);
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 远背景装饰
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  for (let i = 0; i < 20; i++) {
-    const sx2 = (i * 193 + 47) % levelData.w;
-    const sy2 = 80 + (i * 137) % 400;
-    ctx.beginPath();
-    ctx.arc(sx2 - cx * 0.3, sy2, 4 + (i%6), 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // 绘制所有实体
-  for (const e of levelData.entities) {
-    const sx_e = e.x - cx;
-    const sy_e = e.y - cy;
-    if (sx_e > canvas.width + 50 || sx_e + (e.w||80) < -50) continue;
-
-    switch (e.type) {
-      case 'static':
-        drawPlatform(sx_e, sy_e, e.w, e.h, '#5D4E37', '#3D2E1F');
-        // 顶部草地
-        ctx.fillStyle = '#6B9B37';
-        ctx.fillRect(sx_e, sy_e, e.w, Math.min(8, e.h));
-        break;
-
-      case 'moving':
-        drawPlatform(sx_e, sy_e, e.w, e.h, '#7B68AE', '#4A3F7A');
-        ctx.fillStyle = '#9B8FCE';
-        ctx.fillRect(sx_e, sy_e, e.w, 5);
-        // 光晕
-        ctx.fillStyle = 'rgba(180,160,255,0.25)';
-        ctx.fillRect(sx_e-3, sy_e-3, e.w+6, e.h+6);
-        break;
-
-      case 'crumb':
-        if (!e.alive) break;
-        drawPlatform(sx_e, sy_e, e.w, e.h, '#8a8a8a', '#5a5a5a');
-        // 裂纹
-        ctx.strokeStyle = '#444';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(sx_e + e.w*0.3, sy_e);
-        ctx.lineTo(sx_e + e.w*0.5, sy_e + e.h*0.6);
-        ctx.lineTo(sx_e + e.w*0.7, sy_e + e.h*0.9);
-        ctx.stroke();
-        break;
-
-      case 'spike':
-        const sh = 24;
-        const spTop = sy_e - sh;
-        const spW = e.w;
-        const spCount = Math.max(1, Math.floor(spW / 18));
-        const spStep = spW / spCount;
-        ctx.fillStyle = '#e74c3c';
-        ctx.strokeStyle = '#c0392b';
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < spCount; i++) {
-          const spx = sx_e + spStep * i;
-          ctx.beginPath();
-          ctx.moveTo(spx, sy_e);
-          ctx.lineTo(spx + spStep/2, spTop);
-          ctx.lineTo(spx + spStep, sy_e);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-        // 发光
-        ctx.fillStyle = 'rgba(255,60,40,0.2)';
-        ctx.fillRect(sx_e, spTop, spW, sh + 4);
-        break;
-
-      case 'coin':
-        ctx.save();
-        ctx.translate(sx_e, sy_e - cy);
-        const sc = Math.abs(Math.cos(coinSpin + sx_e * 0.01)) * 0.3 + 0.7;
-        ctx.scale(sc, 1);
-        ctx.fillStyle = '#FFD700';
-        ctx.strokeStyle = '#B8860B';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#FFF8DC';
-        ctx.beginPath();
-        ctx.arc(-2, -2, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-        break;
-
-      case 'door':
-        // 门框
-        ctx.fillStyle = '#2C1810';
-        ctx.fillRect(sx_e - 4, sy_e - 4, e.w + 8, e.h + 8);
-        // 门洞发光
-        const glowGrad = ctx.createLinearGradient(sx_e, sy_e, sx_e, sy_e + e.h);
-        glowGrad.addColorStop(0, '#FFE082');
-        glowGrad.addColorStop(0.5, '#FFB300');
-        glowGrad.addColorStop(1, '#FF8F00');
-        ctx.fillStyle = glowGrad;
-        ctx.fillRect(sx_e + 4, sy_e + 4, e.w - 8, e.h - 8);
-        // 光芒
-        ctx.fillStyle = 'rgba(255,200,50,0.3)';
-        ctx.beginPath();
-        ctx.arc(sx_e + e.w/2, sy_e + e.h/2, 40 + Math.sin(Date.now()*0.004)*5, 0, Math.PI*2);
-        ctx.fill();
-        // 箭头标记
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('▼', sx_e + e.w/2, sy_e - 10);
-        break;
-    }
-  }
-
-  // 玩家
-  drawPlayer(player.x - cx, player.y - cy);
-
-  // 粒子
-  drawParticles(ctx, cx, cy);
-
-  // HUD
-  drawHUD(cx, cy);
-}
-
-function drawPlatform(x, y, w, h, topColor, sideColor) {
-  ctx.fillStyle = sideColor;
-  ctx.fillRect(x, y + 6, w, h - 6);
-  ctx.fillStyle = topColor;
-  ctx.fillRect(x, y, w, h);
-  // 亮边
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  ctx.fillRect(x, y, w, 3);
-}
-
-function drawPlayer(px, py) {
-  ctx.save();
-  // 阴影
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fillRect(px + 2, py + 2, PLR_W, PLR_H);
-
-  // 身体
-  const bodyGrad = ctx.createLinearGradient(px, py, px, py + PLR_H);
-  bodyGrad.addColorStop(0, '#5DADE2');
-  bodyGrad.addColorStop(1, '#2E86C1');
-  ctx.fillStyle = bodyGrad;
-  ctx.fillRect(px, py, PLR_W, PLR_H);
-
-  // 边框
-  ctx.strokeStyle = '#1B4F72';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(px, py, PLR_W, PLR_H);
-
-  // 眼睛
-  const eyeX = player.facingRight ? px + PLR_W - 10 : px + 10;
-  const eyeY = py + 10;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(eyeX, eyeY, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.beginPath();
-  const pupilX = player.facingRight ? eyeX + 2 : eyeX - 2;
-  ctx.arc(pupilX, eyeY + 1, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 小脚
-  ctx.fillStyle = '#1B4F72';
-  ctx.fillRect(px + 3, py + PLR_H - 4, 8, 4);
-  ctx.fillRect(px + PLR_W - 11, py + PLR_H - 4, 8, 4);
-
-  // 如果站在移动平台上，显示一点效果
-  if (player.onMovingPlatform) {
-    ctx.fillStyle = 'rgba(180,160,255,0.3)';
-    ctx.fillRect(px - 2, py + PLR_H, PLR_W + 4, 3);
-  }
-
-  ctx.restore();
-}
-
-function drawHUD(cx, cy) {
-  // 半透明背景条
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(0, 0, canvas.width, 36);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 15px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText(`❤️ x ${lives}`, 12, 26);
-  ctx.textAlign = 'center';
-  ctx.fillText(levelData.name, canvas.width/2, 26);
-  ctx.textAlign = 'right';
-  ctx.fillText(`🪙 ${score}`, canvas.width - 12, 26);
-
-  // 如果状态为dead
-  if (state === 'dead') {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#e74c3c';
-    ctx.font = 'bold 32px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(lives > 0 ? '💀 再来一次!' : '游戏结束', canvas.width/2, canvas.height/2 - 10);
-    if (lives > 0) {
-      ctx.fillStyle = '#fff';
-      ctx.font = '16px "PingFang SC","Microsoft YaHei",sans-serif';
-      ctx.fillText(`剩余生命: ${lives}`, canvas.width/2, canvas.height/2 + 30);
-    }
-  }
-
-  if (state === 'levelEnd') {
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🎉 过关!', canvas.width/2, canvas.height/2 - 10);
-    ctx.fillStyle = '#fff';
-    ctx.font = '16px "PingFang SC","Microsoft YaHei",sans-serif';
-    const nextName = curLevel + 1 < levels.length ? levels[curLevel+1].name : '通关!';
-    ctx.fillText(`下一关: ${nextName}`, canvas.width/2, canvas.height/2 + 30);
-  }
-}
-
-function drawMenu() {
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, '#1a1a3e');
-  grad.addColorStop(1, '#0a0a1e');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 装饰星星
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  for (let i = 0; i < 40; i++) {
-    const sx = (i * 191 + 37) % canvas.width;
-    const sy = (i * 73 + 23) % (canvas.height * 0.6);
-    ctx.beginPath();
-    ctx.arc(sx, sy, 1.2 + (i%3), 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = '#FFD700';
-  ctx.font = `bold ${Math.min(36, canvas.width*0.08)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('⚔️ 冒险跳跃 ⚔️', canvas.width/2, canvas.height * 0.28);
-
-  ctx.fillStyle = '#ccc';
-  ctx.font = `${Math.min(16, canvas.width*0.038)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.fillText('穿越陷阱与机关，抵达终点!', canvas.width/2, canvas.height * 0.36);
-
-  // 操作说明
-  const yStart = canvas.height * 0.46;
-  const lineH = Math.min(26, canvas.width*0.055);
-  ctx.fillStyle = '#aaa';
-  ctx.font = `${Math.min(14, canvas.width*0.034)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.fillText('📱 手机: 屏幕底部按钮操控', canvas.width/2, yStart);
-  ctx.fillText('⌨  电脑: 方向键/A D 移动, 空格跳跃', canvas.width/2, yStart + lineH);
-  ctx.fillText(`🏆 共 ${levels.length} 关 · 收集金币 · 避开陷阱`, canvas.width/2, yStart + lineH * 2);
-
-  // 开始按钮
-  const btnW = Math.min(200, canvas.width * 0.5);
-  const btnH = 50;
-  const btnX = canvas.width/2 - btnW/2;
-  const btnY = canvas.height * 0.68;
-  ctx.fillStyle = '#FF8F00';
-  ctx.strokeStyle = '#FFB300';
-  ctx.lineWidth = 3;
-  roundRect(btnX, btnY, btnW, btnH, 25);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${Math.min(20, canvas.width*0.045)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.fillText('开始冒险', canvas.width/2, btnY + 33);
-
-  // 存储按钮位置用于点击检测
-  canvas._menuBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
-}
-
-function drawWin() {
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, '#1a3a1a');
-  grad.addColorStop(1, '#0a1a0a');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = '#FFD700';
-  ctx.font = `bold ${Math.min(34, canvas.width*0.075)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('🏆 恭喜通关! 🏆', canvas.width/2, canvas.height * 0.3);
-  ctx.fillStyle = '#fff';
-  ctx.font = `${Math.min(18, canvas.width*0.04)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.fillText(`总分: ${score} 金币`, canvas.width/2, canvas.height * 0.42);
-  ctx.fillText(`剩余生命: ${lives}`, canvas.width/2, canvas.height * 0.50);
-
-  // 重新开始按钮
-  const btnW = Math.min(200, canvas.width * 0.5);
-  const btnH = 50;
-  const btnX = canvas.width/2 - btnW/2;
-  const btnY = canvas.height * 0.6;
-  ctx.fillStyle = '#4CAF50';
-  roundRect(btnX, btnY, btnW, btnH, 25);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${Math.min(18, canvas.width*0.04)}px "PingFang SC","Microsoft YaHei",sans-serif`;
-  ctx.fillText('再来一次', canvas.width/2, btnY + 33);
-  canvas._winBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
-}
-
-function roundRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r);
-  ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
-}
-
-// ─── 游戏循环 ──────────────────────────
-function gameLoop() {
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
-
-// ─── 画布尺寸调整 ──────────────────────
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-
-// ─── 键盘控制 ──────────────────────────
-const keys = {};
-window.addEventListener('keydown', e => {
-  keys[e.code] = true;
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.left = true;
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') input.right = true;
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
-    input.jump = true;
-    if (state === 'menu') startGame();
-    if (state === 'win') resetGameAndStart();
-    e.preventDefault();
-  }
-  if (e.code === 'ArrowDown') e.preventDefault();
-  if (state === 'menu' && (e.code === 'Enter' || e.code === 'Space')) startGame();
-  if (state === 'win' && e.code === 'Enter') resetGameAndStart();
-});
-window.addEventListener('keyup', e => {
-  keys[e.code] = false;
-  if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.left = !!keys['ArrowLeft'] || !!keys['KeyA'];
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') input.right = !!keys['ArrowRight'] || !!keys['KeyD'];
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
-    input.jump = false;
-    input.jumpPressed = true;
-  }
-});
-
-// ─── 触摸控制 ──────────────────────────
-function setupTouchButton(el, onDown, onUp) {
-  el.addEventListener('pointerdown', e => { e.preventDefault(); onDown(); });
-  el.addEventListener('pointerup', e => { e.preventDefault(); onUp(); });
-  el.addEventListener('pointerleave', e => { onUp(); });
-  el.addEventListener('pointercancel', e => { onUp(); });
-}
-
-setupTouchButton(btnLeft,  () => { input.left = true;  }, () => { input.left = false;  });
-setupTouchButton(btnRight, () => { input.right = true; }, () => { input.right = false; });
-setupTouchButton(btnJump,  () => {
-  input.jump = true;
-  if (state === 'menu') startGame();
-  if (state === 'win') resetGameAndStart();
-}, () => { input.jump = false; input.jumpPressed = true; });
-
-// ─── Canvas 点击(菜单按钮) ──────────────
-canvas.addEventListener('click', e => {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const mx = (e.clientX - rect.left) * scaleX;
-  const my = (e.clientY - rect.top) * scaleY;
-
-  if (state === 'menu' && canvas._menuBtn) {
-    const b = canvas._menuBtn;
-    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-      startGame();
-    }
-  }
-  if (state === 'win' && canvas._winBtn) {
-    const b = canvas._winBtn;
-    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-      resetGameAndStart();
-    }
-  }
-});
-
-function startGame() {
-  resetGame();
-  initLevel(0);
-  state = 'playing';
-}
-
-function resetGameAndStart() {
-  resetGame();
-  initLevel(0);
-  state = 'playing';
-}
-
-// ─── 启动 ──────────────────────────────
-function init() {
-  resizeCanvas();
-  resetGame();
-  initLevel(0);
-  state = 'menu';
-  requestAnimationFrame(gameLoop);
-}
-
-init();
-
-})();
+console.log('🌟 仙途·修仙文字冒险 已就绪');
 </script>
 </body>
 </html>
