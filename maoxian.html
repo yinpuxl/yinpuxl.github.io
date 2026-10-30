@@ -1,860 +1,714 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>仙途 - 修仙文字冒险</title>
-<style>
-:root {
-  --bg: #0d0d1a;
-  --panel: #141428;
-  --gold: #d4a853;
-  --text: #c8c0b8;
-  --dim: #7a7268;
-  --accent: #5b8def;
-  --danger: #d94a4a;
-  --heal: #4acd6b;
-  --rare: #b85be0;
-  --epic: #e0883a;
-  --legend: #e04040;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;background:var(--bg);
-  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--text)}
-#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肉鸽单机 · 点击地牢</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-/* 顶部状态栏 */
-#topbar{background:var(--panel);padding:10px 14px;display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
-#topbar .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3a3050,#1a1030);
-  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--gold)}
-#topbar .info{flex:1;min-width:0}
-#topbar .name{font-weight:bold;font-size:16px;color:#f0e6d8}
-#topbar .realm{font-size:12px;color:var(--gold)}
-#topbar .stats{display:flex;gap:12px;margin-top:2px;font-size:11px;color:var(--dim)}
-#topbar .stats span{white-space:nowrap}
+        body {
+            background: #0a0c0f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 16px;
+        }
 
-/* 标签栏 */
-#tabs{display:flex;flex-shrink:0;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.06)}
-#tabs button{flex:1;padding:10px 4px;background:none;border:none;color:var(--dim);font-size:13px;
-  cursor:pointer;transition:.2s;position:relative;font-family:inherit}
-#tabs button.active{color:var(--gold);font-weight:bold}
-#tabs button.active::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;background:var(--gold)}
+        .game-wrapper {
+            background: #1a1e26;
+            padding: 24px 24px 28px;
+            border-radius: 40px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.9), inset 0 0 8px #3b4b5e;
+            border: 1px solid #3d5066;
+        }
 
-/* 内容区 */
-#content{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;
-  scroll-behavior:smooth}
-#content::-webkit-scrollbar{width:3px}
-#content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+        .game-container {
+            background: #0f1319;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: inset 0 0 20px #000000, 0 0 0 2px #2e3d4f;
+        }
 
-/* 日志区 */
-#log{padding:8px 0}
-.log-entry{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;line-height:1.6;animation:fadeIn .3s}
-.log-entry.sys{color:#8ab4f8}
-.log-entry.combat{color:#f09060}
-.log-entry.loot{color:var(--gold)}
-.log-entry.break{color:var(--rare);font-weight:bold}
-.log-entry.danger{color:var(--danger)}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .status-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px 20px;
+            margin-bottom: 22px;
+            color: #e0e9f0;
+            text-shadow: 0 0 5px #4a7b9f;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
-/* 面板 */
-.panel{display:none}
-.panel.active{display:block}
+        .hp-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #1d262f;
+            padding: 8px 18px;
+            border-radius: 60px;
+            border: 1px solid #4c6a7f;
+            box-shadow: inset 0 2px 5px #000000;
+        }
 
-/* 卡片 */
-.card{background:var(--panel);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.06)}
-.card h3{font-size:14px;color:var(--gold);margin-bottom:8px}
-.card .row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
-.card .row .val{color:#ccc}
+        .hp-icon {
+            color: #ff5e5e;
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 6px #ff0000);
+        }
 
-.btn{display:inline-block;padding:10px 18px;border:none;border-radius:8px;font-size:14px;cursor:pointer;
-  font-family:inherit;transition:.2s;font-weight:bold;margin:3px}
-.btn:active{transform:scale(.95)}
-.btn-gold{background:linear-gradient(135deg,#c8943a,#a07020);color:#fff}
-.btn-blue{background:linear-gradient(135deg,#4a80d0,#3050a0);color:#fff}
-.btn-red{background:linear-gradient(135deg,#d05050,#903030);color:#fff}
-.btn-green{background:linear-gradient(135deg,#4ab860,#308040);color:#fff}
-.btn-purple{background:linear-gradient(135deg,#8a50c0,#6030a0);color:#fff}
-.btn-outline{background:none;border:1px solid var(--gold);color:var(--gold)}
-.btn-block{display:block;width:100%;text-align:center;margin:5px 0}
-.btn-sm{padding:6px 12px;font-size:12px}
+        .hp-value {
+            color: #ffbaba;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+        }
 
-/* 进度条 */
-.progress-bar{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin:4px 0}
-.progress-bar .fill{height:100%;border-radius:4px;transition:width .4s}
-.fill-hp{background:linear-gradient(90deg,#e04040,#f06060)}
-.fill-mp{background:linear-gradient(90deg,#4080e0,#60a0f0)}
-.fill-exp{background:linear-gradient(90deg,#c89040,#e0b050)}
-.fill-cd{background:linear-gradient(90deg,#707070,#909090)}
+        .stats {
+            display: flex;
+            gap: 22px;
+            background: #1d262f;
+            padding: 8px 22px;
+            border-radius: 60px;
+            border: 1px solid #4c6a7f;
+            box-shadow: inset 0 2px 5px #000000;
+        }
 
-/* 战斗区 */
-#battle-area{display:none}
-#battle-area.active{display:block}
-.enemy-card{background:var(--panel);border-radius:10px;padding:12px;margin-bottom:10px;text-align:center;
-  border:1px solid var(--danger)}
-.enemy-card .enemy-name{font-size:18px;color:var(--danger);font-weight:bold}
-.enemy-card .enemy-realm{font-size:12px;color:var(--dim);margin:2px 0}
-.enemy-card .enemy-hp{margin:8px 0}
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-#skill-bar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
-#skill-bar button{min-width:60px}
+        .stat-icon {
+            font-size: 1.3rem;
+        }
 
-/* 装备显示 */
-.equip-item{display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin:4px 0}
-.equip-item .q-icon{font-size:20px;flex-shrink:0}
-.equip-item .q-info{flex:1;min-width:0}
-.equip-item .q-name{font-size:13px;font-weight:bold}
-.equip-item .q-stat{font-size:11px;color:var(--dim)}
+        .gold {
+            color: #ffd966;
+        }
 
-/* 商店/背包列表 */
-.item-list{max-height:300px;overflow-y:auto}
-.item-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;
-  border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
-.item-row .item-cost{color:var(--gold);font-weight:bold;flex-shrink:0;margin-left:8px}
+        .floor {
+            color: #a3d0ff;
+        }
 
-/* 特色文字颜色 */
-.c-gold{color:var(--gold)}
-.c-accent{color:var(--accent)}
-.c-danger{color:var(--danger)}
-.c-heal{color:var(--heal)}
-.c-rare{color:var(--rare)}
-.c-epic{color:var(--epic)}
-.c-legend{color:var(--legend)}
-.c-dim{color:var(--dim)}
+        .attack {
+            color: #ff8a5c;
+        }
 
-/* 响应式 */
-@media(max-width:380px){
-  #tabs button{font-size:11px;padding:8px 2px}
-  #topbar{padding:8px 10px}
-  .btn{padding:8px 14px;font-size:13px}
-}
-</style>
+        .battlefield {
+            background: #0b0e12;
+            border-radius: 30px;
+            padding: 24px 16px 16px;
+            border: 2px solid #2a3a4a;
+            box-shadow: inset 0 0 25px #000000, 0 10px 15px #0000006b;
+            margin-bottom: 22px;
+            min-width: 340px;
+        }
+
+        .enemy-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .enemy-name {
+            color: #c9dbe9;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: #1f2b36;
+            padding: 5px 24px;
+            border-radius: 40px;
+            border: 1px solid #3e5b70;
+            display: inline-block;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px #1f3b4e;
+        }
+
+        .enemy-sprite {
+            font-size: 6rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 15px currentColor);
+            transition: transform 0.1s ease;
+            margin: 6px 0 8px;
+            color: #b0c6d8;
+            text-shadow: 0 0 30px #326180;
+        }
+
+        .enemy-hp-bar {
+            width: 100%;
+            max-width: 280px;
+            height: 18px;
+            background: #201f24;
+            border-radius: 40px;
+            border: 1px solid #4e6478;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px #000;
+            margin-bottom: 8px;
+        }
+
+        .enemy-hp-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #c42e2e, #e05a5a);
+            border-radius: 40px;
+            transition: width 0.25s ease;
+            box-shadow: 0 0 12px #ff4b4b;
+        }
+
+        .enemy-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #bbd1e4;
+            background: #151f28;
+            padding: 4px 18px;
+            border-radius: 40px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #283845;
+            border: none;
+            border-radius: 60px;
+            padding: 14px 28px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #e7f2fa;
+            text-shadow: 0 0 6px #6d9ec0;
+            border-bottom: 4px solid #121b22;
+            box-shadow: 0 6px 0 #0d131a, 0 8px 15px #00000080;
+            cursor: pointer;
+            transition: all 0.07s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 1 auto;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            border-bottom-width: 1px;
+            box-shadow: 0 1px 0 #0d131a, 0 5px 12px #00000080;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+            box-shadow: 0 2px 0 #0d131a;
+            pointer-events: none;
+            filter: grayscale(0.6);
+        }
+
+        .attack-btn {
+            background: #3c2a2a;
+            border-bottom-color: #1d1111;
+            color: #ffbaba;
+            text-shadow: 0 0 8px #ff6b6b;
+        }
+
+        .heal-btn {
+            background: #1d3a30;
+            border-bottom-color: #10241d;
+            color: #b6f0d6;
+            text-shadow: 0 0 8px #4ee6a4;
+        }
+
+        .flee-btn {
+            background: #2f2b40;
+            border-bottom-color: #191625;
+            color: #cfc1ff;
+        }
+
+        .new-run-btn {
+            background: #2a3444;
+            border-bottom-color: #121b26;
+            color: #b8d4ff;
+        }
+
+        .log-box {
+            background: #0d1117;
+            border-radius: 20px;
+            padding: 12px 18px;
+            margin-top: 20px;
+            height: 80px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            color: #afc3d6;
+            border: 1px solid #364b5c;
+            box-shadow: inset 0 0 12px #000000;
+            line-height: 1.5;
+            scrollbar-width: thin;
+            scrollbar-color: #3e5f77 #0d1117;
+        }
+
+        .log-box div {
+            border-bottom: 1px solid #1e2a35;
+            padding: 3px 0;
+        }
+
+        .log-box div:last-child {
+            border-bottom: none;
+        }
+
+        .game-over-message {
+            color: #ff9f9f;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 15px #ff0000;
+        }
+
+        .gold-flash {
+            animation: goldPulse 0.3s ease;
+        }
+
+        @keyframes goldPulse {
+            0% { color: #ffd966; text-shadow: 0 0 8px gold; }
+            50% { color: #fff3b0; text-shadow: 0 0 25px #ffbb00; }
+            100% { color: #ffd966; text-shadow: 0 0 8px gold; }
+        }
+    </style>
 </head>
 <body>
-<div id="app">
-  <!-- 顶部状态栏 -->
-  <div id="topbar">
-    <div class="avatar" id="avatar-icon">🧘</div>
-    <div class="info">
-      <div class="name" id="p-name">无名修士</div>
-      <div class="realm" id="p-realm">凡人</div>
-      <div class="stats">
-        <span>❤️ <span id="p-hp">100</span></span>
-        <span>💎 <span id="p-sp">0</span></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 标签栏 -->
-  <div id="tabs">
-    <button class="active" data-tab="main">🏠 修炼</button>
-    <button data-tab="battle-panel">⚔️ 战斗</button>
-    <button data-tab="equip">🗡️ 装备</button>
-    <button data-tab="explore">🗺️ 探索</button>
-    <button data-tab="shop">🏪 坊市</button>
-  </div>
-
-  <!-- 内容区 -->
-  <div id="content">
-    <!-- 日志 -->
-    <div id="log"></div>
-
-    <!-- 主面板 -->
-    <div class="panel active" id="panel-main">
-      <div class="card">
-        <h3>📿 修炼</h3>
-        <div class="row"><span>修为进度</span><span class="val" id="exp-text">0 / 100</span></div>
-        <div class="progress-bar"><div class="fill fill-exp" id="exp-bar" style="width:0%"></div></div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-gold" onclick="doMeditate()">🧘 修炼 (灵力)</button>
-          <button class="btn btn-blue" onclick="doAbsorb()">💎 吸收灵石</button>
+<div class="game-wrapper">
+    <div class="game-container">
+        <!-- 状态栏 -->
+        <div class="status-panel">
+            <div class="hp-bar">
+                <span class="hp-icon">❤️</span>
+                <span class="hp-value" id="hpDisplay">20 / 20</span>
+            </div>
+            <div class="stats">
+                <div class="stat-item"><span class="stat-icon">⚔️</span><span class="attack" id="atkDisplay">3</span></div>
+                <div class="stat-item"><span class="stat-icon">💰</span><span class="gold" id="goldDisplay">0</span></div>
+                <div class="stat-item"><span class="stat-icon">🏰</span><span class="floor" id="floorDisplay">1</span></div>
+            </div>
         </div>
-      </div>
-      <div class="card">
-        <h3>📋 属性</h3>
-        <div class="row"><span>生命</span><span class="val" id="stat-hp">100/100</span></div>
-        <div class="row"><span>灵力</span><span class="val" id="stat-mp">50/50</span></div>
-        <div class="row"><span>攻击</span><span class="val" id="stat-atk">10</span></div>
-        <div class="row"><span>防御</span><span class="val" id="stat-def">5</span></div>
-        <div class="row"><span>神识</span><span class="val" id="stat-sen">5</span></div>
-        <div class="row"><span>悟性</span><span class="val" id="stat-ins">10</span></div>
-        <div class="row"><span>根骨</span><span class="val" id="stat-bone">8</span></div>
-        <div class="row"><span>五行亲和</span><span class="val" id="stat-elem">金</span></div>
-      </div>
-    </div>
 
-    <!-- 战斗面板 -->
-    <div class="panel" id="panel-battle-panel">
-      <div id="battle-area">
-        <div class="enemy-card" id="enemy-card">
-          <div class="enemy-name" id="enemy-name"></div>
-          <div class="enemy-realm" id="enemy-realm"></div>
-          <div class="progress-bar"><div class="fill fill-hp" id="enemy-hp-bar" style="width:100%"></div></div>
-          <div style="font-size:12px;color:var(--dim)" id="enemy-hp-text"></div>
+        <!-- 战斗区域 -->
+        <div class="battlefield">
+            <div class="enemy-area">
+                <div class="enemy-name" id="enemyName">骷髅战士</div>
+                <div class="enemy-sprite" id="enemySprite">💀</div>
+                <div class="enemy-hp-bar">
+                    <div class="enemy-hp-fill" id="enemyHpFill" style="width: 100%"></div>
+                </div>
+                <div class="enemy-stats">
+                    <span>❤️ <span id="enemyHpText">12/12</span></span>
+                    <span>⚔️ <span id="enemyAtkText">3</span></span>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons" id="actionButtons">
+                <button class="btn attack-btn" id="attackBtn">⚔️ 攻击</button>
+                <button class="btn heal-btn" id="healBtn">🧪 治疗 (2💰)</button>
+                <button class="btn flee-btn" id="fleeBtn">🏃 逃跑</button>
+            </div>
+            <div id="gameOverMsg" class="game-over-message" style="display: none;"></div>
         </div>
-        <div id="skill-bar"></div>
-        <div id="battle-log" style="margin-top:8px;font-size:12px;max-height:150px;overflow-y:auto"></div>
-      </div>
-      <div id="no-battle" style="text-align:center;padding:30px;color:var(--dim)">
-        🕊️ 当前没有战斗<br>
-        <button class="btn btn-outline" style="margin-top:12px" onclick="exploreBattle()">🔍 寻找对手</button>
-      </div>
-    </div>
 
-    <!-- 装备面板 -->
-    <div class="panel" id="panel-equip">
-      <div class="card">
-        <h3>⚔️ 当前武器</h3>
-        <div id="current-weapon" style="padding:8px 0">空手</div>
-      </div>
-      <div class="card">
-        <h3>🎒 背包</h3>
-        <div id="inventory" style="max-height:350px;overflow-y:auto">空空如也</div>
-      </div>
+        <!-- 日志 -->
+        <div class="log-box" id="logBox">
+            <div>⚔️ 进入地牢，小心前行...</div>
+        </div>
     </div>
-
-    <!-- 探索面板 -->
-    <div class="panel" id="panel-explore">
-      <div class="card">
-        <h3>🗺️ 秘境探索</h3>
-        <p style="font-size:12px;color:var(--dim);margin-bottom:8px">探索随机秘境，可能遭遇奇遇或危险</p>
-        <button class="btn btn-purple btn-block" onclick="doExplore()">🔮 探索秘境</button>
-      </div>
-      <div class="card">
-        <h3>📜 当前任务</h3>
-        <div id="quest-info" style="font-size:13px">无进行中的任务</div>
-      </div>
-    </div>
-
-    <!-- 坊市面板 -->
-    <div class="panel" id="panel-shop">
-      <div class="card">
-        <h3>🏪 仙域坊市</h3>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:4px">灵石: 💎 <span id="shop-sp">0</span></div>
-        <div class="item-list" id="shop-list"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
-// ═══════════════════ 修仙文字冒险 · 核心数据 ═══════════════════
+    (function() {
+        // ---------- 游戏状态 ----------
+        let player = {
+            hp: 20,
+            maxHp: 20,
+            attack: 3,
+            gold: 0,
+            floor: 1,
+        };
 
-// ── 境界体系 ──
-const REALMS = [
-  { name:'凡人', exp:100, hp:100, mp:50, atk:10, def:5 },
-  { name:'炼气初期', exp:200, hp:150, mp:80, atk:22, def:12 },
-  { name:'炼气中期', exp:350, hp:200, mp:110, atk:35, def:20 },
-  { name:'炼气后期', exp:550, hp:280, mp:150, atk:50, def:30 },
-  { name:'筑基初期', exp:800, hp:400, mp:220, atk:70, def:45 },
-  { name:'筑基中期', exp:1200, hp:550, mp:300, atk:95, def:62 },
-  { name:'筑基后期', exp:1800, hp:750, mp:400, atk:125, def:85 },
-  { name:'金丹初期', exp:2800, hp:1100, mp:560, atk:170, def:115 },
-  { name:'金丹中期', exp:4200, hp:1600, mp:750, atk:230, def:155 },
-  { name:'金丹后期', exp:6500, hp:2400, mp:1000, atk:310, def:210 },
-  { name:'元婴初期', exp:10000, hp:3800, mp:1400, atk:420, def:290 },
-  { name:'元婴中期', exp:16000, hp:5800, mp:2000, atk:570, def:400 },
-  { name:'元婴后期', exp:25000, hp:8800, mp:2900, atk:780, def:550 },
-  { name:'化神初期', exp:40000, hp:14000, mp:4200, atk:1080, def:760 },
-  { name:'化神中期', exp:65000, hp:22000, mp:6000, atk:1500, def:1050 },
-  { name:'合体期',   exp:100000,hp:36000, mp:9000, atk:2100, def:1480 },
-  { name:'大乘期',   exp:180000,hp:60000, mp:14000,atk:3000, def:2100 },
-  { name:'渡劫期',   exp:350000,hp:100000,mp:22000,atk:4500, def:3100 },
-  { name:'真仙',     exp:999999,hp:999999,mp:99999,atk:9999,def:9999 },
-];
+        let enemy = {
+            name: '骷髅战士',
+            sprite: '💀',
+            hp: 12,
+            maxHp: 12,
+            attack: 3,
+        };
 
-// ── 武器库 ──
-const WEAPON_POOL = {
-  // 凡品
-  common: [
-    { name:'铁剑', icon:'🗡️', atk:8, bonus:'', quality:'凡品', qColor:'#aaa', cost:30 },
-    { name:'木杖', icon:'🪄', atk:6, bonus:'灵力+10', quality:'凡品', qColor:'#aaa', cost:25 },
-    { name:'石斧', icon:'🪓', atk:10, bonus:'暴击率+3%', quality:'凡品', qColor:'#aaa', cost:35 },
-    { name:'短刀', icon:'🔪', atk:7, bonus:'速度+5', quality:'凡品', qColor:'#aaa', cost:28 },
-    { name:'竹枪', icon:'🔱', atk:9, bonus:'破甲+2', quality:'凡品', qColor:'#aaa', cost:32 },
-  ],
-  // 灵品
-  uncommon: [
-    { name:'青冥剑', icon:'⚔️', atk:20, bonus:'剑意+15', quality:'灵品', qColor:'#5bab5b', cost:120 },
-    { name:'玄铁重剑', icon:'🗡️', atk:25, bonus:'防御+8', quality:'灵品', qColor:'#5bab5b', cost:150 },
-    { name:'碧波扇', icon:'🪭', atk:16, bonus:'灵力回复+3', quality:'灵品', qColor:'#5bab5b', cost:100 },
-    { name:'追月弓', icon:'🏹', atk:18, bonus:'暴击率+8%', quality:'灵品', qColor:'#5bab5b', cost:130 },
-    { name:'雷音锤', icon:'🔨', atk:22, bonus:'雷属性伤害', quality:'灵品', qColor:'#5bab5b', cost:140 },
-  ],
-  // 宝品
-  rare: [
-    { name:'斩龙剑', icon:'⚔️', atk:42, bonus:'龙族克星·攻击+30', quality:'宝品', qColor:'#4a80d0', cost:400 },
-    { name:'天罡斧', icon:'🪓', atk:50, bonus:'破甲+15·暴击+12%', quality:'宝品', qColor:'#4a80d0', cost:480 },
-    { name:'焚天枪', icon:'🔱', atk:46, bonus:'火属性·灼烧', quality:'宝品', qColor:'#4a80d0', cost:450 },
-    { name:'冰魄琴', icon:'🎸', atk:35, bonus:'冰冻·控制', quality:'宝品', qColor:'#4a80d0', cost:380 },
-    { name:'万魂幡', icon:'🏴', atk:44, bonus:'吸血+15%', quality:'宝品', qColor:'#4a80d0', cost:420 },
-  ],
-  // 仙品
-  epic: [
-    { name:'七星龙渊', icon:'🐉', atk:85, bonus:'七星剑阵·群攻', quality:'仙品', qColor:'#b85be0', cost:1200 },
-    { name:'开天斧', icon:'🌍', atk:100, bonus:'开天辟地·无视防御', quality:'仙品', qColor:'#b85be0', cost:1500 },
-    { name:'九曲黄河图', icon:'📜', atk:78, bonus:'阵法·封印', quality:'仙品', qColor:'#b85be0', cost:1100 },
-    { name:'诛仙剑', icon:'⚡', atk:95, bonus:'雷劫之力', quality:'仙品', qColor:'#b85be0', cost:1400 },
-  ],
-  // 神品
-  legend: [
-    { name:'盘古幡', icon:'🌟', atk:200, bonus:'混沌之力', quality:'神品', qColor:'#e0883a', cost:5000 },
-    { name:'造化玉碟', icon:'💿', atk:180, bonus:'造化万千', quality:'神品', qColor:'#e0883a', cost:4500 },
-    { name:'先天至宝·混沌钟', icon:'🔔', atk:220, bonus:'时空禁锢', quality:'神品', qColor:'#e0883a', cost:6000 },
-  ],
-};
+        // 游戏阶段: 'battle' 战斗中, 'gameover' 游戏结束
+        let gamePhase = 'battle';
+        // 防止连续点击 / 按钮冷却 (但点击攻击会立即触发回合)
+        let actionLock = false;   // 简单锁，用于避免快速连续点击导致异步混乱，但同步逻辑下其实没有异步，不过为了体验
 
-// ── 丹药库 ──
-const PILLS = [
-  { name:'回春丹', icon:'💊', effect:'hp', val:50, cost:15, desc:'恢复50生命' },
-  { name:'聚灵丹', icon:'💊', effect:'mp', val:30, cost:12, desc:'恢复30灵力' },
-  { name:'大还丹', icon:'💉', effect:'hp', val:150, cost:40, desc:'恢复150生命' },
-  { name:'筑基丹', icon:'🧪', effect:'exp', val:100, cost:80, desc:'增加100修为' },
-  { name:'凝神丹', icon:'🧬', effect:'mp', val:80, cost:35, desc:'恢复80灵力' },
-  { name:'金髓丸', icon:'🫙', effect:'buff', val:'atk', cost:60, desc:'临时提升攻击力30%' },
-];
+        // DOM 元素
+        const hpDisplay = document.getElementById('hpDisplay');
+        const atkDisplay = document.getElementById('atkDisplay');
+        const goldDisplay = document.getElementById('goldDisplay');
+        const floorDisplay = document.getElementById('floorDisplay');
+        const enemyName = document.getElementById('enemyName');
+        const enemySprite = document.getElementById('enemySprite');
+        const enemyHpFill = document.getElementById('enemyHpFill');
+        const enemyHpText = document.getElementById('enemyHpText');
+        const enemyAtkText = document.getElementById('enemyAtkText');
+        const attackBtn = document.getElementById('attackBtn');
+        const healBtn = document.getElementById('healBtn');
+        const fleeBtn = document.getElementById('fleeBtn');
+        const logBox = document.getElementById('logBox');
+        const gameOverMsg = document.getElementById('gameOverMsg');
+        const actionButtons = document.getElementById('actionButtons');
 
-// ── 探索事件库 ──
-const EXPLORE_EVENTS = [
-  { text:'你在山洞中发现了一株千年灵芝！', effect:'heal', val:80, type:'loot' },
-  { text:'一道金光闪过，你捡到了前人遗留的灵石。', effect:'sp', val:30, type:'loot' },
-  { text:'山洞深处传来低语，你获得了一卷残缺功法。', effect:'exp', val:50, type:'loot' },
-  { text:'一位受伤的散修求你帮助，你分给他一些丹药。', effect:'sp', val:-10, type:'event', alt:'善举得福报，修为+30', altEff:'exp', altVal:30 },
-  { text:'前方出现妖兽！', effect:'battle', type:'danger' },
-  { text:'你发现了一扇古老的石门，上面刻着奇异符文。', effect:'exp', val:80, type:'loot' },
-  { text:'山谷中灵气浓郁，你在此打坐修炼了一番。', effect:'exp', val:40, type:'loot' },
-  { text:'一名魔修拦路打劫！', effect:'battle', type:'danger' },
-  { text:'你采到了一些珍稀药材。', effect:'sp', val:25, type:'loot' },
-  { text:'瀑布后隐藏着一个洞府，里面有一件宝物。', effect:'weapon', type:'loot' },
-  { text:'天空降下流星，落在不远处的山巅。', effect:'exp', val:100, type:'loot' },
-  { text:'一只灵兽幼崽跟着你不肯离去。', effect:'companion', type:'event' },
-  { text:'远古传送阵突然启动！', effect:'sp', val:60, type:'loot' },
-  { text:'你在溪边捡到了一枚玉佩，温热发光。', effect:'exp', val:35, type:'loot' },
-  { text:'黑暗中有东西在注视着你...', effect:'battle', type:'danger' },
-];
-
-// ── 剧情节点 ──
-const STORY_NODES = {
-  start: {
-    title:'序章·凡人之躯',
-    text:'你本是青山村的一名孤儿，自幼被村口铁匠收养。一日，你在后山砍柴时，忽然天降流星，一枚温热的玉佩坠入你怀中。玉佩中传来古老的意志...',
-    choices:[
-      { text:'紧握玉佩，接受命运', next:'accept' },
-      { text:'犹豫不决，仔细观察', next:'observe' },
-    ]
-  },
-  accept: {
-    title:'天选之人',
-    text:'玉佩中涌出磅礴灵力，你体内沉睡的灵根被唤醒。冥冥之中，你感应到千里之外的青云山上有仙门在召唤。你决定踏上修仙之路。',
-    choices:[
-      { text:'即刻出发', next:'journey', reward:{sp:20,exp:30} },
-    ]
-  },
-  observe: {
-    title:'谨慎为上',
-    text:'你小心翼翼地观察玉佩。玉佩上刻着四个古字——「天道酬勤」。突然，一股温和的灵力缓缓流入你的体内，你感到浑身充满了力量。',
-    choices:[
-      { text:'感谢天意，踏上仙途', next:'journey', reward:{sp:15,exp:40} },
-    ]
-  },
-  journey: {
-    title:'踏入山门',
-    text:'历经三天跋涉，你来到青云山脚下。山门巍峨，云雾缭绕。守门弟子见你身怀灵根，引你拜入青云剑宗，成为外门弟子。从此，你的修仙之路正式开启。',
-    choices:[
-      { text:'努力修炼，不负天意', next:'done', reward:{sp:50,exp:60,weapon:'铁剑'} },
-    ]
-  },
-  done: { title:'', text:'', choices:[] }
-};
-
-// ── 主线任务链 ──
-const QUEST_LINE = [
-  { realm:0, title:'初窥门径', desc:'修为达到炼气初期', check:(g)=>g.realm>=1, reward:'灵石+100' },
-  { realm:3, title:'小有所成', desc:'修为达到炼气后期', check:(g)=>g.realm>=3, reward:'灵石+300，获得灵品武器' },
-  { realm:4, title:'筑基大道', desc:'突破至筑基期', check:(g)=>g.realm>=4, reward:'灵石+800，获得宝品武器' },
-  { realm:7, title:'金丹真人', desc:'凝成金丹', check:(g)=>g.realm>=7, reward:'灵石+2000，获得仙品武器' },
-  { realm:10,title:'元婴老怪', desc:'化婴成功', check:(g)=>g.realm>=10, reward:'灵石+5000' },
-  { realm:18,title:'飞升成仙', desc:'渡劫飞升', check:(g)=>g.realm>=18, reward:'恭喜通关！' },
-];
-
-// ═══════════════════ 游戏状态 ═══════════════════
-const G = {
-  name:'无名修士',
-  realm:0, // REALMS索引
-  exp:0,
-  hp:100, maxHp:100,
-  mp:50, maxMp:50,
-  atk:10, def:5,
-  baseAtk:10, baseDef:5,
-  sen:5, ins:10, bone:8,
-  element:'金',
-  sp:0, // 灵石
-  weapon:null, // 装备的武器对象
-  inventory:[], // 背包(武器+丹药)
-  questIdx:0,
-  storyDone:false,
-  buffs:{}, // {atkBoost:3} 剩余回合
-};
-
-let inBattle = false;
-let enemy = null;
-let battleTurn = 0;
-let currentTab = 'main';
-
-// ═══════════════════ 核心函数 ═══════════════════
-
-function r(n){ return Math.floor(Math.random()*n) }
-function pick(arr){ return arr[r(arr.length)] }
-
-function realmData(){ return REALMS[G.realm] }
-function recalcStats(){
-  const rd = realmData();
-  G.maxHp = rd.hp + (G.weapon?.hpBonus||0);
-  G.maxMp = rd.mp + (G.weapon?.mpBonus||0);
-  G.baseAtk = rd.atk + (G.weapon?.atk||0);
-  G.baseDef = rd.def + (G.weapon?.defBonus||0);
-  G.atk = G.baseAtk; G.def = G.baseDef;
-  if(G.buffs.atkBoost>0) G.atk = Math.floor(G.atk*1.3);
-  if(G.buffs.defBoost>0) G.def = Math.floor(G.def*1.3);
-  if(G.hp > G.maxHp) G.hp = G.maxHp;
-  if(G.mp > G.maxMp) G.mp = G.maxMp;
-}
-
-function addLog(msg, cls=''){
-  const div = document.createElement('div');
-  div.className = 'log-entry ' + (cls||'');
-  div.innerHTML = msg;
-  const log = document.getElementById('log');
-  log.appendChild(div);
-  while(log.children.length > 50) log.removeChild(log.firstChild);
-}
-
-function canAfford(n){ return G.sp >= n }
-
-function equipWeapon(w){
-  if(G.weapon){
-    G.inventory.push(G.weapon);
-    addLog(`卸下 ${G.weapon.icon} ${G.weapon.name}`,'sys');
-  }
-  G.weapon = w;
-  // 从背包移除
-  const idx = G.inventory.findIndex(i=>i===w);
-  if(idx>=0) G.inventory.splice(idx,1);
-  recalcStats();
-  addLog(`装备 ${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}] ${w.atk?`攻击+${w.atk}`:''} ${w.bonus}`,'loot');
-}
-
-function gainExp(amt){
-  G.exp += amt;
-  const rd = realmData();
-  if(G.realm >= REALMS.length-1){ G.exp=0; return; }
-  while(G.exp >= rd.exp && G.realm < REALMS.length-1){
-    G.exp -= rd.exp;
-    G.realm++;
-    const newRd = REALMS[G.realm];
-    G.hp = newRd.hp; G.mp = newRd.mp;
-    recalcStats();
-    addLog(`🌟 突破！晋升 <span class="c-rare">${newRd.name}</span>！`,'break');
-    checkQuest();
-    if(G.realm===4) addLog('📜 你成功筑基，寿元大增，在宗门中的地位大幅提升。','sys');
-    if(G.realm===7) addLog('📜 金丹大成！天空中降下金色光柱，你感受到了天地法则的脉动。','sys');
-    if(G.realm===10) addLog('📜 元婴凝结！你的神魂可以离体遨游，天下之大皆可去得。','sys');
-    if(G.realm===18) addLog('🏆 恭喜飞升成仙！你已超脱三界，位列仙班！','break');
-  }
-  refreshUI();
-}
-
-function checkQuest(){
-  const q = QUEST_LINE[G.questIdx];
-  if(q && q.check(G)){
-    addLog(`✅ 任务完成：<span class="c-gold">${q.title}</span> — ${q.reward}`,'loot');
-    if(q.realm===3 && !G.weapon) equipRandomWeapon('uncommon');
-    if(q.realm===4 && (!G.weapon || G.weapon.quality==='凡品'||G.weapon.quality==='灵品')) equipRandomWeapon('rare');
-    if(q.realm===7) { G.sp+=2000; equipRandomWeapon('epic'); }
-    if(G.questIdx===4) G.sp+=5000;
-    G.questIdx++;
-  }
-}
-
-function equipRandomWeapon(tier){
-  const pool = WEAPON_POOL[tier];
-  if(!pool) return;
-  const w = {...pick(pool)};
-  G.inventory.push(w);
-  equipWeapon(w);
-}
-
-// ═══════════════════ 修炼 ═══════════════════
-function doMeditate(){
-  if(inBattle){ addLog('战斗中无法修炼！','danger'); return; }
-  const cost = 15;
-  if(G.mp < cost){ addLog('灵力不足，无法修炼！','danger'); return; }
-  G.mp -= cost;
-  const gain = 10 + G.ins + r(15);
-  gainExp(gain);
-  addLog(`🧘 你静心修炼，获得了 <span class="c-gold">${gain}</span> 修为。`,'sys');
-  refreshUI();
-}
-
-function doAbsorb(){
-  if(inBattle){ addLog('战斗中无法吸收灵石！','danger'); return; }
-  if(G.sp < 10){ addLog('灵石不足！（需要10灵石）','danger'); return; }
-  G.sp -= 10;
-  const gain = 35 + G.bone + r(20);
-  gainExp(gain);
-  addLog(`💎 你吸收灵石中的灵力，获得 <span class="c-gold">${gain}</span> 修为。`,'sys');
-  refreshUI();
-}
-
-// ═══════════════════ 探索 ═══════════════════
-function doExplore(){
-  if(inBattle){ addLog('先结束战斗再探索！','danger'); return; }
-  const evt = pick(EXPLORE_EVENTS);
-  if(evt.effect==='battle'){
-    exploreBattle();
-    return;
-  }
-  if(evt.effect==='heal'){ G.hp = Math.min(G.maxHp, G.hp+evt.val); addLog(evt.text+` (恢复${evt.val}生命)`,'loot'); }
-  if(evt.effect==='sp'){ G.sp += evt.val; addLog(evt.text,'loot'); }
-  if(evt.effect==='exp'){ addLog(evt.text,'loot'); gainExp(evt.val); }
-  if(evt.effect==='weapon'){
-    const tiers = ['common','common','uncommon','uncommon','rare'];
-    const tier = tiers[r(tiers.length)];
-    const w = {...pick(WEAPON_POOL[tier])};
-    G.inventory.push(w);
-    addLog(`${evt.text} 获得 ${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}]`,'loot');
-  }
-  if(evt.effect==='event'){
-    if(evt.alt && r(2)===0){
-      addLog(evt.alt,'sys');
-      if(evt.altEff==='exp') gainExp(evt.altVal);
-    } else {
-      if(evt.val<0){ G.sp = Math.max(0, G.sp+evt.val); }
-    }
-    addLog(evt.text,'sys');
-  }
-  refreshUI();
-}
-
-function exploreBattle(){
-  const rl = Math.max(0, G.realm-1+r(4));
-  const rdEnemy = REALMS[Math.min(rl, REALMS.length-2)];
-  const names = ['山贼', '妖兽·赤练蛇', '魔修', '石傀儡', '血蝙蝠', '尸鬼', '千年树妖', '剑灵残影', '阴煞', '妖狼'];
-  enemy = {
-    name: pick(names),
-    realm: rdEnemy.name,
-    hp: rdEnemy.hp + r(Math.floor(rdEnemy.hp*0.3)),
-    maxHp: rdEnemy.hp + r(Math.floor(rdEnemy.hp*0.3)),
-    atk: rdEnemy.atk + r(Math.floor(rdEnemy.atk*0.3)),
-    def: rdEnemy.def + r(Math.floor(rdEnemy.def*0.2)),
-    spReward: 15 + rl*8 + r(30),
-    expReward: 30 + rl*12 + r(40),
-  };
-  enemy.maxHp = enemy.hp;
-  inBattle = true;
-  battleTurn = 0;
-  document.getElementById('no-battle').style.display = 'none';
-  document.getElementById('battle-area').classList.add('active');
-  switchTab('battle-panel');
-  updateBattleUI();
-  addLog(`⚔️ 遭遇 <span class="c-danger">${enemy.name}</span>（${enemy.realm}）！`,'combat');
-}
-// ═══════════════════ 战斗 ═══════════════════
-const SKILLS = [
-  { name:'普通攻击', icon:'⚔️', mp:0, dmg:1.0, desc:'基础攻击', color:'btn-blue' },
-  { name:'全力一击', icon:'💥', mp:20, dmg:1.8, desc:'消耗20灵力·高伤害', color:'btn-red' },
-  { name:'剑气纵横', icon:'🌀', mp:30, dmg:1.4, desc:'消耗30灵力·范围斩击', color:'btn-purple', aoe:true },
-  { name:'防御姿态', icon:'🛡️', mp:10, dmg:0.3, desc:'消耗10灵力·提升防御2回合', color:'btn-green', buff:'defBoost', buffVal:3 },
-  { name:'嗜血狂攻', icon:'🩸', mp:35, dmg:2.2, desc:'消耗35灵力·暴击伤害', color:'btn-red', crit:true },
-];
-
-function doSkill(idx){
-  if(!inBattle) return;
-  const sk = SKILLS[idx];
-  if(G.mp < sk.mp){ addLog(`灵力不足！（需要${sk.mp}）`,'danger'); updateBattleUI(); return; }
-  G.mp -= sk.mp;
-  // 计算伤害
-  let dmg = Math.floor(G.atk * sk.dmg);
-  if(sk.crit || r(100) < 3 + G.sen){
-    dmg = Math.floor(dmg * 1.8);
-    addLog(`🎯 暴击！`,'combat');
-  }
-  if(sk.aoe){ dmg = Math.floor(dmg * 1.15); }
-  dmg = Math.max(1, dmg - Math.floor(enemy.def*0.3));
-  dmg += r(6) - 3;
-  dmg = Math.max(1, dmg);
-  enemy.hp -= dmg;
-  addLog(`你使用 <span class="c-accent">${sk.name}</span>，对${enemy.name}造成 <span class="c-danger">${dmg}</span> 伤害。`,'combat');
-  if(sk.buff){
-    G.buffs[sk.buff] = (G.buffs[sk.buff]||0) + sk.buffVal;
-    recalcStats();
-    addLog(`🛡️ 防御提升！持续${sk.buffVal}回合`,'sys');
-  }
-  refreshUI();
-  if(enemy.hp <= 0){
-    winBattle();
-    return;
-  }
-  enemyTurn();
-  updateBattleUI();
-}
-
-function winBattle(){
-  addLog(`🎉 击败了 <span class="c-danger">${enemy.name}</span>！`,'loot');
-  G.sp += enemy.spReward;
-  addLog(`获得灵石 <span class="c-gold">+${enemy.spReward}</span>`,'loot');
-  gainExp(enemy.expReward);
-  addLog(`获得修为 <span class="c-gold">+${enemy.expReward}</span>`,'loot');
-  // 概率掉落
-  if(r(5)===0){
-    const tiers = ['common','common','uncommon'];
-    if(G.realm>=4) tiers.push('rare');
-    if(G.realm>=7) tiers.push('epic');
-    const tier = tiers[r(tiers.length)];
-    const w = {...pick(WEAPON_POOL[tier])};
-    G.inventory.push(w);
-    addLog(`🎁 掉落武器：${w.icon} <span class="c-gold">${w.name}</span> [${w.quality}]`,'loot');
-  }
-  endBattle();
-}
-
-function endBattle(){
-  inBattle = false;
-  enemy = null;
-  document.getElementById('no-battle').style.display = '';
-  document.getElementById('battle-area').classList.remove('active');
-  // 回到主页
-  switchTab('main');
-  refreshUI();
-}
-
-function updateBattleUI(){
-  if(!enemy) return;
-  document.getElementById('enemy-name').textContent = enemy.name;
-  document.getElementById('enemy-realm').textContent = enemy.realm;
-  const pct = Math.max(0, Math.floor(enemy.hp/enemy.maxHp*100));
-  document.getElementById('enemy-hp-bar').style.width = pct+'%';
-  document.getElementById('enemy-hp-text').textContent = `❤️ ${enemy.hp} / ${enemy.maxHp}`;
-  // 技能栏
-  const bar = document.getElementById('skill-bar');
-  bar.innerHTML = SKILLS.map((sk,i)=>{
-    const disabled = G.mp < sk.mp ? 'disabled style="opacity:0.5"' : '';
-    return `<button class="btn ${sk.color} btn-sm" onclick="doSkill(${i})" ${disabled}>${sk.icon} ${sk.name}<br><small>${sk.desc}</small></button>`;
-  }).join('');
-}
-
-// ═══════════════════ UI刷新 ═══════════════════
-function refreshUI(){
-  const rd = realmData();
-  document.getElementById('p-name').textContent = G.name;
-  document.getElementById('p-realm').textContent = rd.name;
-  document.getElementById('p-hp').textContent = `${G.hp}/${G.maxHp}`;
-  document.getElementById('p-sp').textContent = G.sp;
-  // 头像
-  const avatars = ['🧘','🧙','🧝','🧞','🦸','🧛','🧜','🦹','👼','🧚','🦸‍♂️','🧝‍♂️','👨‍🔬','🦹‍♂️','🧙‍♂️','👑','🔮','✨','🌟'];
-  document.getElementById('avatar-icon').textContent = avatars[Math.min(G.realm, avatars.length-1)];
-
-  // 主面板
-  document.getElementById('exp-text').textContent = `${G.exp} / ${rd.exp}`;
-  document.getElementById('exp-bar').style.width = Math.min(100, Math.floor(G.exp/rd.exp*100))+'%';
-  document.getElementById('stat-hp').textContent = `${G.hp}/${G.maxHp}`;
-  document.getElementById('stat-mp').textContent = `${G.mp}/${G.maxMp}`;
-  document.getElementById('stat-atk').textContent = G.atk;
-  document.getElementById('stat-def').textContent = G.def;
-  document.getElementById('stat-sen').textContent = G.sen;
-  document.getElementById('stat-ins').textContent = G.ins;
-  document.getElementById('stat-bone').textContent = G.bone;
-
-  // 装备面板
-  const weDiv = document.getElementById('current-weapon');
-  if(G.weapon){
-    weDiv.innerHTML = `<span class="${G.weapon.qColor}" style="font-weight:bold">${G.weapon.icon} ${G.weapon.name}</span>
-      <span style="color:var(--dim);margin-left:8px">[${G.weapon.quality}]</span>
-      <br><span style="font-size:12px">${G.weapon.bonus} · 攻击+${G.weapon.atk||0}</span>`;
-  } else {
-    weDiv.textContent = '空手';
-  }
-  const invDiv = document.getElementById('inventory');
-  if(G.inventory.length===0){
-    invDiv.innerHTML = '<span style="color:var(--dim)">空空如也</span>';
-  } else {
-    invDiv.innerHTML = G.inventory.map((item,i)=>{
-      if(item.atk!==undefined){
-        // 武器
-        return `<div class="equip-item">
-          <span class="q-icon">${item.icon}</span>
-          <div class="q-info"><div class="q-name" style="color:${item.qColor||'#ccc'}">${item.name} [${item.quality}]</div>
-          <div class="q-stat">攻击+${item.atk} ${item.bonus}</div></div>
-          <button class="btn btn-gold btn-sm" onclick="equipInventory(${i})">装备</button>
-        </div>`;
-      } else {
-        // 丹药
-        return `<div class="equip-item">
-          <span class="q-icon">${item.icon}</span>
-          <div class="q-info"><div class="q-name">${item.name}</div>
-          <div class="q-stat">${item.desc}</div></div>
-          <button class="btn btn-green btn-sm" onclick="usePill(${i})">使用</button>
-        </div>`;
-      }
-    }).join('');
-  }
-
-  // 探索面板
-  const q = QUEST_LINE[G.questIdx];
-  document.getElementById('quest-info').innerHTML = q
-    ? `<b>${q.title}</b><br><span style="color:var(--dim)">${q.desc}</span>`
-    : '🏆 所有任务已完成！';
-
-  // 商店
-  document.getElementById('shop-sp').textContent = G.sp;
-  const shopDiv = document.getElementById('shop-list');
-  const allWeapons = [
-    ...WEAPON_POOL.common.map(w=>({...w,tier:'common'})),
-    ...WEAPON_POOL.uncommon.map(w=>({...w,tier:'uncommon'})),
-    ...WEAPON_POOL.rare.map(w=>({...w,tier:'rare'})),
-  ];
-  if(G.realm>=7) allWeapons.push(...WEAPON_POOL.epic.map(w=>({...w,tier:'epic'})));
-  if(G.realm>=13) allWeapons.push(...WEAPON_POOL.legend.map(w=>({...w,tier:'legend'})));
-  shopDiv.innerHTML = allWeapons.map((w,i)=>{
-    const aff = canAfford(w.cost) ? '' : 'style="opacity:0.4"';
-    return `<div class="item-row" ${aff}>
-      <span>${w.icon} <span style="color:${w.qColor}">${w.name}</span> <span class="c-dim">[${w.quality}]</span><br><small class="c-dim">攻击+${w.atk} ${w.bonus}</small></span>
-      <button class="btn btn-gold btn-sm item-cost" onclick="buyWeapon('${w.tier}',${i})" ${!canAfford(w.cost)?'disabled':''}>💎${w.cost}</button>
-    </div>`;
-  }).join('');
-
-  // 丹药区追加到商店
-  shopDiv.innerHTML += '<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px"><b>🧪 丹药</b></div>';
-  shopDiv.innerHTML += PILLS.map((p,i)=>{
-    const aff = canAfford(p.cost) ? '' : 'style="opacity:0.4"';
-    return `<div class="item-row" ${aff}>
-      <span>${p.icon} ${p.name}<br><small class="c-dim">${p.desc}</small></span>
-      <button class="btn btn-green btn-sm item-cost" onclick="buyPill(${i})" ${!canAfford(p.cost)?'disabled':''}>💎${p.cost}</button>
-    </div>`;
-  }).join('');
-
-  updateBattleUI();
-}
-
-function equipInventory(idx){
-  const item = G.inventory[idx];
-  if(!item || item.atk===undefined) return;
-  equipWeapon(item);
-  refreshUI();
-}
-
-function usePill(idx){
-  const item = G.inventory[idx];
-  if(!item || item.atk!==undefined) return;
-  if(item.effect==='hp'){ G.hp = Math.min(G.maxHp, G.hp+item.val); addLog(`使用 ${item.name}，恢复${item.val}生命`,'heal'); }
-  if(item.effect==='mp'){ G.mp = Math.min(G.maxMp, G.mp+item.val); addLog(`使用 ${item.name}，恢复${item.val}灵力`,'heal'); }
-  if(item.effect==='exp'){ gainExp(item.val); addLog(`使用 ${item.name}，获得${item.val}修为`,'loot'); }
-  if(item.effect==='buff'){ G.buffs.atkBoost=(G.buffs.atkBoost||0)+5; recalcStats(); addLog(`使用 ${item.name}，攻击力提升30%持续5回合`,'sys'); }
-  G.inventory.splice(idx,1);
-  refreshUI();
-}
-
-function buyWeapon(tier, idx){
-  const pool = WEAPON_POOL[tier];
-  if(!pool) return;
-  const w = pool[idx];
-  if(!canAfford(w.cost)){ addLog('灵石不足！','danger'); return; }
-  G.sp -= w.cost;
-  const newW = {...w};
-  G.inventory.push(newW);
-  addLog(`购买 ${newW.icon} <span class="c-gold">${newW.name}</span> [${newW.quality}]`,'loot');
-  refreshUI();
-}
-
-function buyPill(idx){
-  const p = PILLS[idx];
-  if(!canAfford(p.cost)){ addLog('灵石不足！','danger'); return; }
-  G.sp -= p.cost;
-  G.inventory.push({...p});
-  addLog(`购买 ${p.icon} ${p.name}`,'loot');
-  refreshUI();
-}
-
-// ═══════════════════ 标签切换 ═══════════════════
-function switchTab(name){
-  currentTab = name;
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`[data-tab="${name}"]`)?.classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  const panelMap = { main:'panel-main', 'battle-panel':'panel-battle-panel', equip:'panel-equip', explore:'panel-explore', shop:'panel-shop' };
-  const panelId = panelMap[name];
-  if(panelId) document.getElementById(panelId)?.classList.add('active');
-  if(name==='battle-panel' && !inBattle){
-    document.getElementById('no-battle').style.display = '';
-    document.getElementById('battle-area').classList.remove('active');
-  }
-  refreshUI();
-}
-
-document.querySelectorAll('#tabs button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const tab = btn.dataset.tab;
-    if(tab==='battle-panel' && !inBattle){
-      // 如果没有战斗，切换到战斗面板显示寻找对手
-    }
-    switchTab(tab);
-  });
-});
-
-// ═══════════════════ 初始化 ═══════════════════
-function initGame(){
-  recalcStats();
-  // 初始剧情
-  if(!G.storyDone){
-    addLog('📜 ' + STORY_NODES.start.title,'break');
-    addLog(STORY_NODES.start.text,'sys');
-    // 自动选择第一个选项开始
-    const node = STORY_NODES.accept;
-    addLog('📜 ' + node.title,'break');
-    addLog(node.text,'sys');
-    if(node.reward){
-      G.sp += node.reward.sp||0;
-      gainExp(node.reward.exp||0);
-    }
-    const jNode = STORY_NODES.journey;
-    addLog('📜 ' + jNode.title,'break');
-    addLog(jNode.text,'sys');
-    if(jNode.reward){
-      G.sp += jNode.reward.sp||0;
-      gainExp(jNode.reward.exp||0);
-      if(jNode.reward.weapon){
-        const w = WEAPON_POOL.common.find(w=>w.name===jNode.reward.weapon);
-        if(w){
-          const nw = {...w};
-          G.inventory.push(nw);
-          equipWeapon(nw);
+        // ---------- 辅助函数 ----------
+        function log(message, isGood = true) {
+            const entry = document.createElement('div');
+            entry.textContent = message;
+            // 简单颜色区分，可选
+            if (message.includes('❤️') || message.includes('治疗')) entry.style.color = '#a3e0b0';
+            if (message.includes('💀') || message.includes('死亡')) entry.style.color = '#ff9e9e';
+            if (message.includes('💰') || message.includes('金币')) entry.style.color = '#ffd966';
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+            // 限制日志长度，保留最后30条
+            while (logBox.children.length > 30) {
+                logBox.removeChild(logBox.firstChild);
+            }
         }
-      }
-    }
-    G.storyDone = true;
-  }
-  refreshUI();
-}
 
-initGame();
+        // 更新所有UI
+        function updateUI() {
+            // 玩家状态
+            hpDisplay.textContent = `${player.hp} / ${player.maxHp}`;
+            atkDisplay.textContent = player.attack;
+            goldDisplay.textContent = player.gold;
+            floorDisplay.textContent = player.floor;
 
-// ═══════════════════ 自动恢复 ═══════════════════
-setInterval(()=>{
-  if(inBattle) return;
-  if(G.mp < G.maxMp){ G.mp = Math.min(G.maxMp, G.mp + 2); }
-  if(G.hp < G.maxHp){ G.hp = Math.min(G.maxHp, G.hp + 1); }
-  // buff衰减
-  if(!inBattle){
-    for(const k in G.buffs){
-      G.buffs[k]--;
-      if(G.buffs[k]<=0) delete G.buffs[k];
-    }
-    recalcStats();
-  }
-  refreshUI();
-}, 3000);
+            // 敌人状态
+            enemyName.textContent = enemy.name;
+            enemySprite.textContent = enemy.sprite;
+            const enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+            enemyHpFill.style.width = enemyHpPercent + '%';
+            enemyHpText.textContent = `${enemy.hp}/${enemy.maxHp}`;
+            enemyAtkText.textContent = enemy.attack;
 
-console.log('🌟 仙途·修仙文字冒险 已就绪');
+            // 根据游戏阶段处理按钮和额外显示
+            if (gamePhase === 'gameover') {
+                attackBtn.disabled = true;
+                healBtn.disabled = true;
+                fleeBtn.disabled = true;
+                // 显示游戏结束信息，隐藏常规按钮区？可以在gameOverMsg显示，但保留按钮禁用更好
+                gameOverMsg.style.display = 'block';
+                // 如果游戏结束，显示重新开始按钮
+                if (!document.getElementById('restartBtn')) {
+                    const restartBtn = document.createElement('button');
+                    restartBtn.id = 'restartBtn';
+                    restartBtn.className = 'btn new-run-btn';
+                    restartBtn.textContent = '🔄 新的轮回';
+                    restartBtn.style.marginTop = '12px';
+                    restartBtn.addEventListener('click', resetGame);
+                    // 替换或者添加？保持简洁，移除gameOverMsg中内容并加入按钮
+                    gameOverMsg.innerHTML = '💀 你已倒下... <br>';
+                    gameOverMsg.appendChild(restartBtn);
+                }
+            } else {
+                // 战斗阶段，启用按钮（但治疗可能需要金币判断）
+                attackBtn.disabled = false;
+                healBtn.disabled = (player.gold < 2 || player.hp >= player.maxHp); // 满血或没钱不能治疗
+                fleeBtn.disabled = false;
+                gameOverMsg.style.display = 'none';
+                // 移除可能存在的重新开始按钮（防止重复）
+                const oldRestart = document.getElementById('restartBtn');
+                if (oldRestart) oldRestart.remove();
+            }
+
+            // 攻击/治疗等按钮额外禁用（如果行动锁, 但通常不用）
+            if (actionLock) {
+                attackBtn.disabled = true;
+                healBtn.disabled = true;
+                fleeBtn.disabled = true;
+            }
+        }
+
+        // 重置游戏（新的一轮）
+        function resetGame() {
+            player = {
+                hp: 20,
+                maxHp: 20,
+                attack: 3,
+                gold: 0,
+                floor: 1,
+            };
+            gamePhase = 'battle';
+            actionLock = false;
+            // 清除日志
+            logBox.innerHTML = '';
+            log('⚔️ 你踏入地牢，新的冒险开始。');
+            // 生成第一层敌人
+            generateEnemyForFloor();
+            updateUI();
+            // 隐藏gameover消息
+            gameOverMsg.style.display = 'none';
+            const restartBtn = document.getElementById('restartBtn');
+            if (restartBtn) restartBtn.remove();
+        }
+
+        // 根据层数生成敌人
+        function generateEnemyForFloor() {
+            const floor = player.floor;
+            // 基础命名池
+            const names = [
+                { name: '骷髅战士', sprite: '💀' },
+                { name: '洞穴蝙蝠', sprite: '🦇' },
+                { name: '腐化史莱姆', sprite: '🟢' },
+                { name: '地穴蜘蛛', sprite: '🕷️' },
+                { name: '幽灵', sprite: '👻' },
+                { name: '兽人斥候', sprite: '👹' },
+                { name: '石像鬼', sprite: '🗿' },
+                { name: '地狱犬', sprite: '🐕‍🦺' },
+                { name: '暗影法师', sprite: '🧙' },
+                { name: '小恶魔', sprite: '😈' },
+                { name: '瘟疫医生', sprite: '🦡' },
+                { name: '深渊守卫', sprite: '👾' }
+            ];
+            // 随机选择（层级越高，可能选择更靠后的，但简单随机）
+            const idx = Math.floor(Math.random() * names.length);
+            const base = names[idx];
+
+            // 敌人属性随层数提升
+            const floorMultiplier = player.floor;
+            // 基础生命 8~14 加上层数*2.5左右
+            const baseHp = 8 + Math.floor(Math.random() * 7) + Math.floor(floorMultiplier * 2.2);
+            const hp = Math.max(6, baseHp);
+            // 攻击力: 基础2~4 加上层数(每层0.6向下取整，但保证至少2)
+            const baseAtk = 2 + Math.floor(Math.random() * 3) + Math.floor(floorMultiplier * 0.7);
+            const attack = Math.max(2, baseAtk);
+
+            // 偶尔强化名字
+            let enemyNameStr = base.name;
+            if (player.floor >= 4 && Math.random() < 0.4) {
+                enemyNameStr = '精英·' + enemyNameStr;
+            }
+            if (player.floor >= 7 && Math.random() < 0.3) {
+                enemyNameStr = '首领·' + enemyNameStr;
+            }
+
+            enemy = {
+                name: enemyNameStr,
+                sprite: base.sprite,
+                hp: hp,
+                maxHp: hp,
+                attack: attack,
+            };
+
+            // 每层额外提高血量/攻击的修正
+            // 已经包含在上面的计算中
+            log(`⚔️ 第 ${player.floor} 层遭遇 ${enemy.name} (❤️${enemy.hp} ⚔️${enemy.attack})`);
+        }
+
+        // 玩家死亡处理
+        function handlePlayerDeath() {
+            gamePhase = 'gameover';
+            player.hp = 0;  // 确保显示0
+            updateUI();
+            log('💀 你被击败了... 地牢吞噬了你的灵魂。');
+        }
+
+        // 敌人死亡后处理：增加金币，提升层数，生成新敌人
+        function handleEnemyDeath() {
+            // 金币奖励：基础2 + 楼层数/2 随机
+            const goldEarned = 2 + Math.floor(player.floor / 2) + Math.floor(Math.random() * 3);
+            player.gold += goldEarned;
+            log(`💰 击败敌人！获得 ${goldEarned} 金币。`);
+
+            // 每层有几率提升攻击力（成长）
+            if (Math.random() < 0.4 || player.floor % 3 === 0) {
+                player.attack += 1;
+                log(`⚔️ 你的攻击力提升了！ (现在 ${player.attack})`);
+            }
+
+            // 层数+1
+            player.floor += 1;
+            // 回复少量生命作为奖励（上限)
+            const healAmount = 2 + Math.floor(Math.random() * 3);
+            player.hp = Math.min(player.maxHp, player.hp + healAmount);
+            log(`❤️ 你恢复了 ${healAmount} 点生命。`);
+
+            // 生成新敌人
+            generateEnemyForFloor();
+            // 确保游戏阶段是battle
+            gamePhase = 'battle';
+            updateUI();
+        }
+
+        // 玩家攻击
+        function playerAttack() {
+            if (gamePhase !== 'battle' || actionLock) return;
+            // 简单锁定，防止连点产生多次攻击（同步情况下没必要，但没关系）
+            actionLock = true;
+            attackBtn.disabled = true;
+            healBtn.disabled = true;
+            fleeBtn.disabled = true;
+
+            // 玩家攻击敌人
+            const damage = player.attack + Math.floor(Math.random() * 2); // 小幅波动
+            enemy.hp = Math.max(0, enemy.hp - damage);
+            log(`⚔️ 你对 ${enemy.name} 造成 ${damage} 点伤害。`);
+
+            // 检查敌人是否死亡
+            if (enemy.hp <= 0) {
+                enemy.hp = 0;
+                updateUI();
+                log(`💀 ${enemy.name} 被击败了！`);
+                // 延迟一点点处理敌人死亡，让UI更新看起来更顺畅 (使用setTimeout让战斗感觉更自然)
+                setTimeout(() => {
+                    if (gamePhase === 'battle') {
+                        handleEnemyDeath();
+                        actionLock = false;
+                        updateUI();
+                    }
+                }, 120);
+                return;
+            }
+
+            // 敌人反击
+            enemyRetaliate();
+        }
+
+        // 敌人反击
+        function enemyRetaliate() {
+            // 敌人攻击玩家
+            const enemyDamage = enemy.attack + Math.floor(Math.random() * 2) - 1; // 浮动 -1~+1
+            const finalDamage = Math.max(1, enemyDamage);
+            player.hp = Math.max(0, player.hp - finalDamage);
+            log(`💥 ${enemy.name} 反击，对你造成 ${finalDamage} 点伤害。`);
+
+            // 检查玩家是否死亡
+            if (player.hp <= 0) {
+                player.hp = 0;
+                updateUI();
+                handlePlayerDeath();
+                actionLock = false;
+                return;
+            }
+
+            // 更新UI，解锁
+            updateUI();
+            actionLock = false;
+        }
+
+        // 治疗玩家
+        function healPlayer() {
+            if (gamePhase !== 'battle' || actionLock) return;
+            if (player.gold < 2) {
+                log('💰 金币不足，无法治疗。');
+                return;
+            }
+            if (player.hp >= player.maxHp) {
+                log('❤️ 你已经满血了，不需要治疗。');
+                return;
+            }
+
+            actionLock = true;
+            attackBtn.disabled = true;
+            healBtn.disabled = true;
+            fleeBtn.disabled = true;
+
+            // 消耗2金币
+            player.gold -= 2;
+            // 回复6~9点生命
+            const healAmount = 6 + Math.floor(Math.random() * 4);
+            player.hp = Math.min(player.maxHp, player.hp + healAmount);
+            log(`🧪 你使用药水，恢复了 ${healAmount} 点生命。 (消耗2💰)`);
+
+            // 治疗之后，敌人会攻击（因为在战斗中)
+            // 但是需要先判断玩家是否因为治疗导致满血，无所谓，敌人还是会攻击
+            // 敌人攻击玩家
+            const enemyDamage = enemy.attack + Math.floor(Math.random() * 2) - 1;
+            const finalDamage = Math.max(1, enemyDamage);
+            player.hp = Math.max(0, player.hp - finalDamage);
+            log(`💥 ${enemy.name} 趁机攻击，对你造成 ${finalDamage} 点伤害。`);
+
+            if (player.hp <= 0) {
+                player.hp = 0;
+                updateUI();
+                handlePlayerDeath();
+                actionLock = false;
+                return;
+            }
+
+            updateUI();
+            actionLock = false;
+        }
+
+        // 逃跑（返回上一层？ 简化：损失金币，返回低一层，回复少许生命)
+        function flee() {
+            if (gamePhase !== 'battle' || actionLock) return;
+            // 逃跑代价：损失一些金币，退回上一层(但不能小于1)，回复少量生命
+            actionLock = true;
+            attackBtn.disabled = true;
+            healBtn.disabled = true;
+            fleeBtn.disabled = true;
+
+            const goldLoss = Math.min(player.gold, 3 + Math.floor(Math.random() * 4));
+            player.gold -= goldLoss;
+            log(`🏃 你仓皇逃跑，丢失了 ${goldLoss} 金币。`);
+
+            // 层数降低，但最低1
+            if (player.floor > 1) {
+                player.floor -= 1;
+                log(`⬇️ 你退回到了第 ${player.floor} 层。`);
+            } else {
+                log(`⬇️ 你仍在地下第 ${player.floor} 层。`);
+            }
+
+            // 恢复少量生命
+            const healAmount = 3 + Math.floor(Math.random() * 5);
+            player.hp = Math.min(player.maxHp, player.hp + healAmount);
+            log(`❤️ 你喘了口气，恢复 ${healAmount} 点生命。`);
+
+            // 生成新敌人 (根据新的层数)
+            generateEnemyForFloor();
+            // 确保游戏阶段
+            gamePhase = 'battle';
+            updateUI();
+            actionLock = false;
+        }
+
+        // 事件绑定
+        function bindEvents() {
+            attackBtn.addEventListener('click', playerAttack);
+            healBtn.addEventListener('click', healPlayer);
+            fleeBtn.addEventListener('click', flee);
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 初始状态
+            resetGame();
+            bindEvents();
+        }
+
+        // 启动
+        initGame();
+    })();
 </script>
 </body>
 </html>
