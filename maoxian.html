@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>肉鸽地牢 · 通关版</title>
+<title>肉鸽地牢 · 分支与商店</title>
 <style>
   * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
   body {
@@ -13,8 +13,8 @@
   }
   .game-wrapper {
     background: #1a1e26; padding: 20px; border-radius: 32px;
-    box-shadow: 0 20px 30px rgba(0,0,0,0.9), inset 0 0 8px #3b4b5e;
-    border: 1px solid #3d5066; max-width: 520px; width: 100%;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.9);
+    border: 1px solid #3d5066; max-width: 640px; width: 100%;
   }
   .game-container {
     background: #0f1319; border-radius: 24px; padding: 18px;
@@ -22,86 +22,142 @@
   }
   .status-panel {
     display: flex; flex-wrap: wrap; justify-content: space-between;
-    align-items: center; gap: 10px; margin-bottom: 16px;
-    color: #e0e9f0; font-weight: bold; font-size: 1rem;
+    align-items: center; gap: 8px; margin-bottom: 12px;
+    color: #e0e9f0; font-weight: bold; font-size: 0.95rem;
   }
   .hp-bar {
     display: flex; align-items: center; gap: 6px; background: #1d262f;
-    padding: 6px 14px; border-radius: 60px; border: 1px solid #4c6a7f;
+    padding: 5px 12px; border-radius: 60px; border: 1px solid #4c6a7f;
   }
-  .hp-value { color: #ffbaba; font-size: 1.2rem; }
+  .hp-value { color: #ffbaba; font-size: 1.1rem; }
   .stats {
-    display: flex; gap: 16px; background: #1d262f;
-    padding: 6px 16px; border-radius: 60px; border: 1px solid #4c6a7f;
+    display: flex; gap: 12px; background: #1d262f;
+    padding: 5px 14px; border-radius: 60px; border: 1px solid #4c6a7f;
   }
   .stat-item { display: flex; align-items: center; gap: 4px; }
   .gold { color: #ffd966; } .floor { color: #a3d0ff; } .attack { color: #ff8a5c; }
   .battlefield {
-    background: #0b0e12; border-radius: 24px; padding: 20px 14px 14px;
+    background: #0b0e12; border-radius: 24px; padding: 18px 12px 12px;
     border: 2px solid #2a3a4a; box-shadow: inset 0 0 25px #000;
-    margin-bottom: 16px; text-align: center;
+    margin-bottom: 12px; text-align: center; min-height: 260px;
+    display: flex; flex-direction: column; justify-content: center;
   }
   .enemy-name {
-    color: #c9dbe9; font-size: 1.1rem; letter-spacing: 2px;
-    background: #1f2b36; padding: 4px 20px; border-radius: 40px;
-    border: 1px solid #3e5b70; display: inline-block; margin-bottom: 8px;
+    color: #c9dbe9; font-size: 1rem; letter-spacing: 2px;
+    background: #1f2b36; padding: 3px 18px; border-radius: 40px;
+    border: 1px solid #3e5b70; display: inline-block; margin-bottom: 6px;
   }
   .enemy-name.boss { color: #ffd700; border-color: #ffd700; box-shadow: 0 0 12px #ffd70088; }
   .enemy-sprite {
-    font-size: 5rem; line-height: 1; filter: drop-shadow(0 0 15px currentColor);
-    margin: 4px 0 8px; color: #b0c6d8; text-shadow: 0 0 30px #326180;
+    font-size: 4.5rem; line-height: 1; margin: 2px 0 6px;
+    color: #b0c6d8; text-shadow: 0 0 30px #326180;
   }
   .enemy-hp-bar {
-    width: 90%; max-width: 260px; height: 16px; background: #201f24;
+    width: 90%; max-width: 240px; height: 14px; background: #201f24;
     border-radius: 40px; border: 1px solid #4e6478; overflow: hidden;
-    margin: 0 auto 6px;
+    margin: 0 auto 4px;
   }
   .enemy-hp-fill {
     height: 100%; width: 100%; background: linear-gradient(90deg, #c42e2e, #e05a5a);
-    border-radius: 40px; transition: width 0.2s ease; box-shadow: 0 0 10px #ff4b4b;
+    border-radius: 40px; transition: width 0.2s ease;
   }
   .enemy-stats {
-    display: inline-flex; gap: 18px; font-size: 0.85rem; color: #bbd1e4;
-    background: #151f28; padding: 3px 16px; border-radius: 40px;
+    display: inline-flex; gap: 16px; font-size: 0.8rem; color: #bbd1e4;
+    background: #151f28; padding: 2px 14px; border-radius: 40px;
   }
   .action-buttons {
-    display: flex; gap: 10px; justify-content: center;
-    margin-top: 14px; flex-wrap: wrap;
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: 12px; flex-wrap: wrap;
   }
   .btn {
-    background: #283845; border: none; border-radius: 60px; padding: 12px 22px;
-    font-family: inherit; font-weight: bold; font-size: 1rem; letter-spacing: 1px;
+    background: #283845; border: none; border-radius: 60px; padding: 10px 18px;
+    font-family: inherit; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;
     color: #e7f2fa; border-bottom: 4px solid #121b22;
-    box-shadow: 0 6px 0 #0d131a, 0 8px 15px #00000080; cursor: pointer;
-    transition: all 0.07s ease; display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 0 #0d131a; cursor: pointer;
+    transition: all 0.07s ease; display: flex; align-items: center; gap: 5px;
     touch-action: manipulation;
   }
   .btn:active:not(:disabled) {
-    transform: translateY(5px); border-bottom-width: 1px;
-    box-shadow: 0 1px 0 #0d131a, 0 5px 12px #00000080;
+    transform: translateY(4px); border-bottom-width: 1px;
+    box-shadow: 0 1px 0 #0d131a;
   }
   .btn:disabled {
-    opacity: 0.4; transform: translateY(3px); border-bottom-width: 2px;
-    box-shadow: 0 2px 0 #0d131a; pointer-events: none; filter: grayscale(0.5);
+    opacity: 0.4; transform: translateY(2px); border-bottom-width: 2px;
+    pointer-events: none; filter: grayscale(0.5);
   }
   .attack-btn { background: #3c2a2a; border-bottom-color: #1d1111; color: #ffbaba; }
   .heal-btn { background: #1d3a30; border-bottom-color: #10241d; color: #b6f0d6; }
   .flee-btn { background: #2f2b40; border-bottom-color: #191625; color: #cfc1ff; }
   .restart-btn { background: #2a3444; border-bottom-color: #121b26; color: #b8d4ff; }
+  .choice-btn { background: #2a3a4a; border-bottom-color: #1a2a3a; color: #a3d0ff; }
+  .shop-btn { background: #3a3020; border-bottom-color: #201810; color: #ffd966; }
+  .buy-btn { background: #1d3a30; border-bottom-color: #10241d; color: #b6f0d6; font-size: 0.8rem; padding: 8px 14px; }
+  .buy-btn:disabled { opacity: 0.3; }
   .log-box {
-    background: #0d1117; border-radius: 16px; padding: 10px 14px; margin-top: 14px;
-    height: 86px; overflow-y: auto; font-size: 0.85rem; color: #afc3d6;
-    border: 1px solid #364b5c; box-shadow: inset 0 0 12px #000;
-    line-height: 1.5; scrollbar-width: thin;
+    background: #0d1117; border-radius: 16px; padding: 8px 12px; margin-top: 10px;
+    height: 72px; overflow-y: auto; font-size: 0.8rem; color: #afc3d6;
+    border: 1px solid #364b5c; line-height: 1.4;
   }
-  .log-box div { border-bottom: 1px solid #1e2a35; padding: 2px 0; }
+  .log-box div { border-bottom: 1px solid #1e2a35; padding: 1px 0; }
   .log-box div:last-child { border-bottom: none; }
-  .game-over-msg {
-    text-align: center; font-size: 1.1rem; font-weight: bold; margin: 8px 0;
-  }
-  .game-over-msg.lose { color: #ff9f9f; text-shadow: 0 0 15px #ff0000; }
-  .game-over-msg.win { color: #ffd966; text-shadow: 0 0 20px #ffbb00; }
+  .game-over-msg { text-align: center; font-size: 1rem; font-weight: bold; margin: 6px 0; }
+  .game-over-msg.lose { color: #ff9f9f; }
+  .game-over-msg.win { color: #ffd966; }
   .hidden { display: none !important; }
+
+  /* 分支路线面板 */
+  .branch-panel {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin: 8px 0;
+  }
+  .branch-card {
+    background: #1a2430; border: 2px solid #3a5a70; border-radius: 16px;
+    padding: 14px 18px; cursor: pointer; transition: all 0.15s;
+    min-width: 140px; text-align: center; color: #c9dbe9;
+  }
+  .branch-card:hover { border-color: #6ab0d0; background: #223040; transform: translateY(-2px); }
+  .branch-card .icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+  .branch-card .label { font-size: 0.85rem; font-weight: bold; }
+  .branch-card .desc { font-size: 0.7rem; color: #8aa8c0; margin-top: 3px; }
+  .branch-card.danger { border-color: #6a3a3a; }
+  .branch-card.danger:hover { border-color: #d06a6a; background: #302020; }
+  .branch-card.treasure { border-color: #6a5a30; }
+  .branch-card.treasure:hover { border-color: #d0b06a; background: #302a20; }
+  .branch-card.elite { border-color: #6a3060; }
+  .branch-card.elite:hover { border-color: #d06ac0; background: #302030; }
+
+  /* 商店面板 */
+  .shop-panel {
+    background: #141a22; border: 2px solid #4a5a3a; border-radius: 16px;
+    padding: 12px; margin-top: 8px;
+  }
+  .shop-title {
+    color: #ffd966; font-size: 1rem; font-weight: bold; text-align: center;
+    margin-bottom: 8px; letter-spacing: 1px;
+  }
+  .shop-items { display: flex; flex-direction: column; gap: 6px; }
+  .shop-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1a2430; border-radius: 10px; padding: 8px 12px;
+    border: 1px solid #2a3a4a;
+  }
+  .shop-item-info { display: flex; align-items: center; gap: 8px; }
+  .shop-item-icon { font-size: 1.4rem; }
+  .shop-item-name { color: #e0e9f0; font-size: 0.85rem; font-weight: bold; }
+  .shop-item-desc { color: #8aa8c0; font-size: 0.7rem; }
+  .shop-item-price { color: #ffd966; font-size: 0.85rem; font-weight: bold; margin-right: 8px; }
+  .shop-footer { text-align: center; margin-top: 8px; }
+
+  /* 背包显示 */
+  .inventory {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+    justify-content: center;
+  }
+  .inv-item {
+    background: #1d262f; border: 1px solid #4c6a7f; border-radius: 8px;
+    padding: 2px 8px; font-size: 0.7rem; color: #bbd1e4;
+  }
+  .inv-item.passive { border-color: #6a5a30; color: #ffd966; }
 </style>
 </head>
 <body>
@@ -116,7 +172,7 @@
       </div>
     </div>
 
-    <div class="battlefield">
+    <div class="battlefield" id="battlefield">
       <div class="enemy-name" id="enemyName">骷髅战士</div>
       <div class="enemy-sprite" id="enemySprite">💀</div>
       <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemyHpFill" style="width:100%"></div></div>
@@ -127,50 +183,94 @@
     </div>
 
     <div class="action-buttons" id="actionButtons">
-      <button class="btn attack-btn" id="attackBtn">⚔️ 攻击</button>
-      <button class="btn heal-btn" id="healBtn">🧪 治疗 (2💰)</button>
-      <button class="btn flee-btn" id="fleeBtn">🏃 逃跑</button>
+      <button class="btn attack-btn" id="attackBtn" type="button">⚔️ 攻击</button>
+      <button class="btn heal-btn" id="healBtn" type="button">🧪 治疗 (2💰)</button>
+      <button class="btn flee-btn" id="fleeBtn" type="button">🏃 逃跑</button>
     </div>
 
+    <div id="branchPanel" class="branch-panel hidden"></div>
+    <div id="shopPanel" class="shop-panel hidden"></div>
     <div id="gameOverMsg" class="game-over-msg hidden"></div>
+    <div class="inventory" id="inventory"></div>
     <div class="log-box" id="logBox"></div>
   </div>
 </div>
 
 <script>
+window.onerror = function(msg, url, line) {
+  const dbg = document.getElementById('logBox');
+  if (dbg) {
+    const d = document.createElement('div');
+    d.style.color = '#ff6b6b';
+    d.textContent = '❌ 错误: ' + msg + ' 行:' + line;
+    dbg.appendChild(d);
+  }
+  return false;
+};
+
 (function() {
-  const BOSS_FLOOR = 10; // 第10层为Boss层
+  'use strict';
 
-  let player = { hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1 };
+  const BOSS_FLOOR = 10;
+  const MAX_ITEMS = 6; // 背包上限
+
+  let player = {
+    hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1,
+    items: [],           // 被动道具 {id, name, icon, desc, type, value}
+    tempAttack: 0,       // 临时攻击加成
+    tempDefense: 0,      // 临时防御(减伤)
+    battleCount: 0,      // 已战斗次数
+  };
+
   let enemy = { name: '骷髅战士', sprite: '💀', hp: 12, maxHp: 12, attack: 3, isBoss: false };
-  let gamePhase = 'battle'; // 'battle' | 'gameover' | 'victory'
+  let gamePhase = 'battle'; // 'battle' | 'branch' | 'shop' | 'gameover' | 'victory'
 
-  const hpDisplay = document.getElementById('hpDisplay');
-  const atkDisplay = document.getElementById('atkDisplay');
-  const goldDisplay = document.getElementById('goldDisplay');
-  const floorDisplay = document.getElementById('floorDisplay');
-  const enemyName = document.getElementById('enemyName');
-  const enemySprite = document.getElementById('enemySprite');
-  const enemyHpFill = document.getElementById('enemyHpFill');
-  const enemyHpText = document.getElementById('enemyHpText');
-  const enemyAtkText = document.getElementById('enemyAtkText');
-  const attackBtn = document.getElementById('attackBtn');
-  const healBtn = document.getElementById('healBtn');
-  const fleeBtn = document.getElementById('fleeBtn');
-  const logBox = document.getElementById('logBox');
-  const gameOverMsg = document.getElementById('gameOverMsg');
+  const $ = id => document.getElementById(id);
+  const hpDisplay = $('hpDisplay'), atkDisplay = $('atkDisplay'), goldDisplay = $('goldDisplay'), floorDisplay = $('floorDisplay');
+  const enemyName = $('enemyName'), enemySprite = $('enemySprite'), enemyHpFill = $('enemyHpFill'), enemyHpText = $('enemyHpText'), enemyAtkText = $('enemyAtkText');
+  const attackBtn = $('attackBtn'), healBtn = $('healBtn'), fleeBtn = $('fleeBtn');
+  const logBox = $('logBox'), gameOverMsg = $('gameOverMsg');
+  const branchPanel = $('branchPanel'), shopPanel = $('shopPanel'), inventory = $('inventory');
+  const battlefield = $('battlefield'), actionButtons = $('actionButtons');
 
   function log(msg) {
     const div = document.createElement('div');
     div.textContent = msg;
     logBox.appendChild(div);
     logBox.scrollTop = logBox.scrollHeight;
-    while (logBox.children.length > 40) logBox.removeChild(logBox.firstChild);
+    while (logBox.children.length > 30) logBox.removeChild(logBox.firstChild);
   }
 
+  // ========== 有效属性计算 ==========
+  function getEffectiveAttack() {
+    let atk = player.attack + player.tempAttack;
+    player.items.forEach(it => {
+      if (it.type === 'atk') atk += it.value;
+    });
+    return atk;
+  }
+  function getDamageReduction() {
+    let red = player.tempDefense;
+    player.items.forEach(it => {
+      if (it.type === 'def') red += it.value;
+    });
+    return red;
+  }
+  function getMaxHpBonus() {
+    let bonus = 0;
+    player.items.forEach(it => {
+      if (it.type === 'hp') bonus += it.value;
+    });
+    return bonus;
+  }
+  function getEffectiveMaxHp() {
+    return player.maxHp + getMaxHpBonus();
+  }
+
+  // ========== UI 刷新 ==========
   function updateUI() {
-    hpDisplay.textContent = `${player.hp} / ${player.maxHp}`;
-    atkDisplay.textContent = player.attack;
+    hpDisplay.textContent = player.hp + ' / ' + getEffectiveMaxHp();
+    atkDisplay.textContent = getEffectiveAttack();
     goldDisplay.textContent = player.gold;
     floorDisplay.textContent = player.floor;
 
@@ -179,44 +279,71 @@
     enemySprite.textContent = enemy.sprite;
     const pct = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
     enemyHpFill.style.width = pct + '%';
-    enemyHpText.textContent = `${enemy.hp}/${enemy.maxHp}`;
+    enemyHpText.textContent = enemy.hp + '/' + enemy.maxHp;
     enemyAtkText.textContent = enemy.attack;
 
-    if (gamePhase === 'gameover' || gamePhase === 'victory') {
-      attackBtn.disabled = true;
-      healBtn.disabled = true;
-      fleeBtn.disabled = true;
-      gameOverMsg.classList.remove('hidden');
+    // 背包显示
+    inventory.innerHTML = '';
+    player.items.forEach(it => {
+      const span = document.createElement('span');
+      span.className = 'inv-item ' + (it.type === 'atk' || it.type === 'def' || it.type === 'hp' ? 'passive' : '');
+      span.textContent = it.icon + ' ' + it.name;
+      span.title = it.desc;
+      inventory.appendChild(span);
+    });
 
-      if (!document.getElementById('restartBtn')) {
-        const isWin = gamePhase === 'victory';
-        gameOverMsg.className = 'game-over-msg ' + (isWin ? 'win' : 'lose');
-        gameOverMsg.innerHTML = isWin
-          ? '🏆 通关！你击败了地牢之主！<br>'
-          : '💀 你已倒下... <br>';
-        const btn = document.createElement('button');
-        btn.id = 'restartBtn';
-        btn.className = 'btn restart-btn';
-        btn.textContent = '🔄 新的轮回';
-        btn.style.marginTop = '10px';
-        btn.addEventListener('click', resetGame);
-        gameOverMsg.appendChild(btn);
-      }
+    const inBattle = gamePhase === 'battle';
+    const canHeal = inBattle && player.gold >= 2 && player.hp < getEffectiveMaxHp() && player.hp > 0;
+
+    attackBtn.disabled = !inBattle;
+    fleeBtn.disabled = !inBattle || enemy.isBoss;
+    healBtn.disabled = !canHeal;
+
+    // 显示/隐藏区域
+    if (gamePhase === 'gameover' || gamePhase === 'victory') {
+      gameOverMsg.classList.remove('hidden');
+      const isWin = gamePhase === 'victory';
+      gameOverMsg.className = 'game-over-msg ' + (isWin ? 'win' : 'lose');
+      gameOverMsg.innerHTML = isWin
+        ? '🏆 通关！你击败了地牢之主！<br>'
+        : '💀 你已倒下...<br>';
+      const btn = document.createElement('button');
+      btn.className = 'btn restart-btn';
+      btn.type = 'button';
+      btn.textContent = '🔄 新的轮回';
+      btn.style.marginTop = '8px';
+      btn.addEventListener('click', resetGame);
+      gameOverMsg.appendChild(btn);
     } else {
-      attackBtn.disabled = false;
-      fleeBtn.disabled = false;
-      healBtn.disabled = (player.gold < 2 || player.hp >= player.maxHp || player.hp <= 0);
       gameOverMsg.classList.add('hidden');
+      gameOverMsg.innerHTML = '';
+    }
+
+    branchPanel.classList.toggle('hidden', gamePhase !== 'branch');
+    shopPanel.classList.toggle('hidden', gamePhase !== 'shop');
+    actionButtons.style.display = gamePhase === 'battle' ? 'flex' : 'none';
+
+    // 战斗中显示敌人区，非战斗时隐藏敌人区(保留占位)
+    if (gamePhase === 'battle') {
+      battlefield.style.display = 'flex';
+    } else if (gamePhase === 'branch' || gamePhase === 'shop') {
+      battlefield.style.display = 'none';
+    } else {
+      battlefield.style.display = 'flex';
     }
   }
 
-  function generateEnemy() {
-    // Boss层特殊处理
-    if (player.floor === BOSS_FLOOR) {
+  // ========== 敌人生成 ==========
+  function generateEnemy(type) {
+    // type: 'normal' | 'elite' | 'treasure' | 'boss'
+    if (player.floor === BOSS_FLOOR) type = 'boss';
+    if (!type) type = 'normal';
+
+    if (type === 'boss') {
       const hp = 60 + Math.floor(Math.random() * 15);
       const atk = 8 + Math.floor(Math.random() * 3);
-      enemy = { name: '地牢之主', sprite: '👑', hp, maxHp: hp, attack: atk, isBoss: true };
-      log(`👑 第 ${BOSS_FLOOR} 层 · BOSS「地牢之主」出现！(❤️${hp} ⚔️${atk})`);
+      enemy = { name: '地牢之主', sprite: '👑', hp: hp, maxHp: hp, attack: atk, isBoss: true };
+      log('👑 第 ' + BOSS_FLOOR + ' 层 · BOSS「地牢之主」出现！(❤️' + hp + ' ⚔️' + atk + ')');
       return;
     }
 
@@ -229,16 +356,20 @@
     ];
     const base = names[Math.floor(Math.random() * names.length)];
     const f = player.floor;
-    const hp = Math.max(6, 8 + Math.floor(Math.random() * 6) + Math.floor(f * 2.2));
-    const atk = Math.max(2, 2 + Math.floor(Math.random() * 3) + Math.floor(f * 0.7));
-    let prefix = '';
-    if (f >= 4 && Math.random() < 0.35) prefix = '精英·';
-    enemy = { name: prefix + base.name, sprite: base.sprite, hp, maxHp: hp, attack: atk, isBoss: false };
-    log(`⚔️ 第 ${f} 层遭遇 ${enemy.name} (❤️${enemy.hp} ⚔️${enemy.attack})`);
+    let hpMult = 1, atkMult = 1, goldBonus = 0, prefix = '';
+
+    if (type === 'elite') { hpMult = 1.8; atkMult = 1.4; goldBonus = 5; prefix = '精英·'; }
+    else if (type === 'treasure') { hpMult = 0.7; atkMult = 0.7; goldBonus = 8; prefix = '宝箱怪·'; }
+
+    const hp = Math.max(6, Math.floor((8 + Math.random() * 6 + f * 2.2) * hpMult));
+    const atk = Math.max(2, Math.floor((2 + Math.random() * 3 + f * 0.7) * atkMult));
+
+    enemy = { name: prefix + base.name, sprite: type === 'treasure' ? '📦' : base.sprite, hp: hp, maxHp: hp, attack: atk, isBoss: false, goldBonus: goldBonus, type: type };
+    log('⚔️ 第 ' + f + ' 层遭遇 ' + enemy.name + ' (❤️' + enemy.hp + ' ⚔️' + enemy.attack + ')');
   }
 
+  // ========== 战斗结算 ==========
   function onEnemyDeath() {
-    // 检查是否击败Boss → 通关
     if (enemy.isBoss) {
       gamePhase = 'victory';
       log('🏆 你击败了地牢之主！通关成功！');
@@ -246,20 +377,36 @@
       return;
     }
 
-    const gold = 2 + Math.floor(player.floor / 2) + Math.floor(Math.random() * 3);
+    let gold = 2 + Math.floor(player.floor / 2) + Math.floor(Math.random() * 3) + (enemy.goldBonus || 0);
     player.gold += gold;
-    log(`💰 击败敌人！获得 ${gold} 金币。`);
-    if (Math.random() < 0.45 || player.floor % 3 === 0) {
+    log('💰 击败 ' + enemy.name + '！获得 ' + gold + ' 金币。');
+
+    // 成长：攻击力提升
+    if (Math.random() < 0.4 || player.floor % 3 === 0) {
       player.attack += 1;
-      log(`⚔️ 攻击力提升至 ${player.attack}！`);
+      log('⚔️ 攻击力提升至 ' + getEffectiveAttack() + '！');
     }
+
+    // 层数+1
     player.floor += 1;
+    player.battleCount++;
+
+    // 回复少量生命
     const heal = 2 + Math.floor(Math.random() * 3);
-    player.hp = Math.min(player.maxHp, player.hp + heal);
-    log(`❤️ 恢复 ${heal} 点生命。进入第 ${player.floor} 层。`);
-    generateEnemy();
-    gamePhase = 'battle';
-    updateUI();
+    player.hp = Math.min(getEffectiveMaxHp(), player.hp + heal);
+    log('❤️ 恢复 ' + heal + ' 点生命。');
+
+    // 战斗后 → 进入分支选择
+    if (player.floor >= BOSS_FLOOR) {
+      // 直接进入Boss层，无需选择
+      log('👑 前方就是地牢之主！');
+      gamePhase = 'battle';
+      generateEnemy('boss');
+      updateUI();
+    } else {
+      gamePhase = 'branch';
+      showBranchOptions();
+    }
   }
 
   function onPlayerDeath() {
@@ -269,16 +416,20 @@
     log('💀 你被击败了... 地牢吞噬了你的灵魂。');
   }
 
+  // ========== 战斗操作 ==========
   function playerAttack() {
     if (gamePhase !== 'battle') return;
-    const dmg = player.attack + Math.floor(Math.random() * 2);
+    const dmg = getEffectiveAttack() + Math.floor(Math.random() * 2);
     enemy.hp = Math.max(0, enemy.hp - dmg);
-    log(`⚔️ 你对 ${enemy.name} 造成 ${dmg} 点伤害。`);
+    log('⚔️ 你对 ' + enemy.name + ' 造成 ' + dmg + ' 点伤害。');
+
     if (enemy.hp <= 0) { enemy.hp = 0; onEnemyDeath(); return; }
 
-    const eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    let eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    eDmg = Math.max(1, eDmg - getDamageReduction());
     player.hp = Math.max(0, player.hp - eDmg);
-    log(`💥 ${enemy.name} 反击，造成 ${eDmg} 点伤害。`);
+    log('💥 ' + enemy.name + ' 反击，造成 ' + eDmg + ' 点伤害。');
+
     if (player.hp <= 0) { onPlayerDeath(); return; }
     updateUI();
   }
@@ -286,56 +437,162 @@
   function healPlayer() {
     if (gamePhase !== 'battle') return;
     if (player.gold < 2) { log('💰 金币不足。'); return; }
-    if (player.hp >= player.maxHp) { log('❤️ 已满血，无需治疗。'); return; }
+    if (player.hp >= getEffectiveMaxHp()) { log('❤️ 已满血。'); return; }
     player.gold -= 2;
     const heal = 6 + Math.floor(Math.random() * 4);
-    player.hp = Math.min(player.maxHp, player.hp + heal);
-    log(`🧪 治疗恢复 ${heal} 点生命 (消耗2💰)。`);
-    const eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    player.hp = Math.min(getEffectiveMaxHp(), player.hp + heal);
+    log('🧪 治疗恢复 ' + heal + ' 点生命 (消耗2💰)。');
+    let eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    eDmg = Math.max(1, eDmg - getDamageReduction());
     player.hp = Math.max(0, player.hp - eDmg);
-    log(`💥 ${enemy.name} 趁机攻击，造成 ${eDmg} 点伤害。`);
+    log('💥 ' + enemy.name + ' 趁机攻击，造成 ' + eDmg + ' 点伤害。');
     if (player.hp <= 0) { onPlayerDeath(); return; }
     updateUI();
   }
 
   function flee() {
-    if (gamePhase !== 'battle') return;
-    // Boss层不能逃跑（增加挑战性）
-    if (enemy.isBoss) { log('👑 无法从地牢之主手中逃脱！'); return; }
-
+    if (gamePhase !== 'battle' || enemy.isBoss) return;
     const loss = Math.min(player.gold, 3 + Math.floor(Math.random() * 4));
     player.gold -= loss;
-    log(`🏃 逃跑损失 ${loss} 金币。`);
-    if (player.floor > 1) { player.floor -= 1; log(`⬇️ 退回第 ${player.floor} 层。`); }
-    else log(`⬇️ 仍在地下第 ${player.floor} 层。`);
+    log('🏃 逃跑损失 ' + loss + ' 金币。');
+    if (player.floor > 1) { player.floor -= 1; log('⬇️ 退回第 ' + player.floor + ' 层。'); }
+    else log('⬇️ 仍在地下第 ' + player.floor + ' 层。');
     const heal = 3 + Math.floor(Math.random() * 5);
-    player.hp = Math.min(player.maxHp, player.hp + heal);
-    log(`❤️ 恢复 ${heal} 点生命。`);
-    generateEnemy();
-    gamePhase = 'battle';
+    player.hp = Math.min(getEffectiveMaxHp(), player.hp + heal);
+    log('❤️ 恢复 ' + heal + ' 点生命。');
+    // 逃跑后进入分支选择
+    gamePhase = 'branch';
+    showBranchOptions();
+  }
+
+  // ========== 分支选择 ==========
+  function showBranchOptions() {
+    branchPanel.innerHTML = '';
+    const title = document.createElement('div');
+    title.style.cssText = 'width:100%;text-align:center;color:#a3d0ff;font-size:0.95rem;font-weight:bold;margin-bottom:6px;';
+    title.textContent = '📜 第 ' + player.floor + ' 层 · 选择前进路线';
+    branchPanel.appendChild(title);
+
+    const options = [
+      { icon: '👹', label: '普通战斗', desc: '标准敌人，常规奖励', type: 'normal', cls: '' },
+      { icon: '👺', label: '精英战斗', desc: '强力敌人，更多金币', type: 'elite', cls: 'elite' },
+      { icon: '📦', label: '宝箱怪', desc: '较弱但金币丰厚', type: 'treasure', cls: 'treasure' },
+      { icon: '🏪', label: '商店', desc: '购买道具/强化', type: 'shop', cls: '' },
+    ];
+
+    options.forEach(opt => {
+      const card = document.createElement('div');
+      card.className = 'branch-card ' + opt.cls;
+      card.innerHTML = '<span class="icon">' + opt.icon + '</span><span class="label">' + opt.label + '</span><span class="desc">' + opt.desc + '</span>';
+      card.addEventListener('click', () => {
+        if (opt.type === 'shop') {
+          gamePhase = 'shop';
+          showShop();
+        } else {
+          gamePhase = 'battle';
+          generateEnemy(opt.type);
+          updateUI();
+        }
+      });
+      branchPanel.appendChild(card);
+    });
     updateUI();
   }
 
+  // ========== 商店 ==========
+  const SHOP_ITEMS = [
+    { id: 'atk1', icon: '⚔️', name: '攻击强化', desc: '永久 +2 攻击力', price: 8, type: 'atk', value: 2 },
+    { id: 'atk2', icon: '🗡️', name: '利刃附魔', desc: '永久 +1 攻击力', price: 4, type: 'atk', value: 1 },
+    { id: 'hp1', icon: '❤️', name: '生命护符', desc: '永久 +5 最大生命', price: 6, type: 'hp', value: 5 },
+    { id: 'hp2', icon: '💖', name: '活力药剂', desc: '永久 +3 最大生命', price: 4, type: 'hp', value: 3 },
+    { id: 'def1', icon: '🛡️', name: '铁壁护甲', desc: '每次受击减少 2 伤害', price: 10, type: 'def', value: 2 },
+    { id: 'def2', icon: '🔰', name: '皮甲', desc: '每次受击减少 1 伤害', price: 5, type: 'def', value: 1 },
+  ];
+
+  function showShop() {
+    shopPanel.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'shop-title';
+    title.textContent = '🏪 地牢商店 · 第 ' + player.floor + ' 层';
+    shopPanel.appendChild(title);
+
+    const itemsDiv = document.createElement('div');
+    itemsDiv.className = 'shop-items';
+
+    SHOP_ITEMS.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'shop-item';
+      const info = document.createElement('div');
+      info.className = 'shop-item-info';
+      info.innerHTML = '<span class="shop-item-icon">' + item.icon + '</span><div><div class="shop-item-name">' + item.name + '</div><div class="shop-item-desc">' + item.desc + '</div></div>';
+      const right = document.createElement('div');
+      right.style.cssText = 'display:flex;align-items:center;';
+      const price = document.createElement('span');
+      price.className = 'shop-item-price';
+      price.textContent = item.price + '💰';
+      const buyBtn = document.createElement('button');
+      buyBtn.className = 'btn buy-btn';
+      buyBtn.type = 'button';
+      buyBtn.textContent = '购买';
+      buyBtn.disabled = player.gold < item.price || player.items.length >= MAX_ITEMS;
+      buyBtn.addEventListener('click', () => {
+        if (player.gold < item.price) { log('💰 金币不足。'); return; }
+        if (player.items.length >= MAX_ITEMS) { log('🎒 背包已满。'); return; }
+        player.gold -= item.price;
+        player.items.push({ id: item.id, icon: item.icon, name: item.name, desc: item.desc, type: item.type, value: item.value });
+        // 如果是生命道具，立即增加当前生命上限
+        if (item.type === 'hp') {
+          player.hp += item.value;
+        }
+        log('🛒 购买了 ' + item.name + ' (花费 ' + item.price + '💰)');
+        showShop();
+        updateUI();
+      });
+      right.appendChild(price);
+      right.appendChild(buyBtn);
+      row.appendChild(info);
+      row.appendChild(right);
+      itemsDiv.appendChild(row);
+    });
+
+    shopPanel.appendChild(itemsDiv);
+
+    // 离开商店
+    const footer = document.createElement('div');
+    footer.className = 'shop-footer';
+    const leaveBtn = document.createElement('button');
+    leaveBtn.className = 'btn choice-btn';
+    leaveBtn.type = 'button';
+    leaveBtn.textContent = '🚪 离开商店，继续前进';
+    leaveBtn.addEventListener('click', () => {
+      gamePhase = 'branch';
+      showBranchOptions();
+    });
+    footer.appendChild(leaveBtn);
+    shopPanel.appendChild(footer);
+
+    updateUI();
+  }
+
+  // ========== 重置 ==========
   function resetGame() {
-    player = { hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1 };
+    player = {
+      hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1,
+      items: [], tempAttack: 0, tempDefense: 0, battleCount: 0,
+    };
     gamePhase = 'battle';
     logBox.innerHTML = '';
     log('⚔️ 你踏入地牢，目标：击败第10层的地牢之主！');
-    generateEnemy();
+    log('📜 击败敌人后可以选择前进路线。');
+    generateEnemy('normal');
     updateUI();
-    gameOverMsg.classList.add('hidden');
-    gameOverMsg.innerHTML = '';
-    const oldRestart = document.getElementById('restartBtn');
-    if (oldRestart) oldRestart.remove();
   }
 
-  function init() {
-    attackBtn.addEventListener('click', playerAttack);
-    healBtn.addEventListener('click', healPlayer);
-    fleeBtn.addEventListener('click', flee);
-    resetGame();
-  }
-  init();
+  // ========== 初始化 ==========
+  attackBtn.addEventListener('click', playerAttack);
+  healBtn.addEventListener('click', healPlayer);
+  fleeBtn.addEventListener('click', flee);
+  resetGame();
 })();
 </script>
 </body>
