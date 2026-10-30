@@ -1,714 +1,342 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肉鸽单机 · 点击地牢</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body {
-            background: #0a0c0f;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 16px;
-        }
-
-        .game-wrapper {
-            background: #1a1e26;
-            padding: 24px 24px 28px;
-            border-radius: 40px;
-            box-shadow: 0 20px 30px rgba(0,0,0,0.9), inset 0 0 8px #3b4b5e;
-            border: 1px solid #3d5066;
-        }
-
-        .game-container {
-            background: #0f1319;
-            border-radius: 28px;
-            padding: 20px;
-            box-shadow: inset 0 0 20px #000000, 0 0 0 2px #2e3d4f;
-        }
-
-        .status-panel {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px 20px;
-            margin-bottom: 22px;
-            color: #e0e9f0;
-            text-shadow: 0 0 5px #4a7b9f;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .hp-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #1d262f;
-            padding: 8px 18px;
-            border-radius: 60px;
-            border: 1px solid #4c6a7f;
-            box-shadow: inset 0 2px 5px #000000;
-        }
-
-        .hp-icon {
-            color: #ff5e5e;
-            font-size: 1.5rem;
-            filter: drop-shadow(0 0 6px #ff0000);
-        }
-
-        .hp-value {
-            color: #ffbaba;
-            font-size: 1.4rem;
-            letter-spacing: 2px;
-        }
-
-        .stats {
-            display: flex;
-            gap: 22px;
-            background: #1d262f;
-            padding: 8px 22px;
-            border-radius: 60px;
-            border: 1px solid #4c6a7f;
-            box-shadow: inset 0 2px 5px #000000;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .stat-icon {
-            font-size: 1.3rem;
-        }
-
-        .gold {
-            color: #ffd966;
-        }
-
-        .floor {
-            color: #a3d0ff;
-        }
-
-        .attack {
-            color: #ff8a5c;
-        }
-
-        .battlefield {
-            background: #0b0e12;
-            border-radius: 30px;
-            padding: 24px 16px 16px;
-            border: 2px solid #2a3a4a;
-            box-shadow: inset 0 0 25px #000000, 0 10px 15px #0000006b;
-            margin-bottom: 22px;
-            min-width: 340px;
-        }
-
-        .enemy-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .enemy-name {
-            color: #c9dbe9;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            background: #1f2b36;
-            padding: 5px 24px;
-            border-radius: 40px;
-            border: 1px solid #3e5b70;
-            display: inline-block;
-            margin-bottom: 10px;
-            box-shadow: 0 0 10px #1f3b4e;
-        }
-
-        .enemy-sprite {
-            font-size: 6rem;
-            line-height: 1;
-            filter: drop-shadow(0 0 15px currentColor);
-            transition: transform 0.1s ease;
-            margin: 6px 0 8px;
-            color: #b0c6d8;
-            text-shadow: 0 0 30px #326180;
-        }
-
-        .enemy-hp-bar {
-            width: 100%;
-            max-width: 280px;
-            height: 18px;
-            background: #201f24;
-            border-radius: 40px;
-            border: 1px solid #4e6478;
-            overflow: hidden;
-            box-shadow: inset 0 2px 5px #000;
-            margin-bottom: 8px;
-        }
-
-        .enemy-hp-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #c42e2e, #e05a5a);
-            border-radius: 40px;
-            transition: width 0.25s ease;
-            box-shadow: 0 0 12px #ff4b4b;
-        }
-
-        .enemy-stats {
-            display: flex;
-            gap: 20px;
-            font-size: 0.9rem;
-            color: #bbd1e4;
-            background: #151f28;
-            padding: 4px 18px;
-            border-radius: 40px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            margin-top: 18px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: #283845;
-            border: none;
-            border-radius: 60px;
-            padding: 14px 28px;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            color: #e7f2fa;
-            text-shadow: 0 0 6px #6d9ec0;
-            border-bottom: 4px solid #121b22;
-            box-shadow: 0 6px 0 #0d131a, 0 8px 15px #00000080;
-            cursor: pointer;
-            transition: all 0.07s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 0 1 auto;
-        }
-
-        .btn:active {
-            transform: translateY(5px);
-            border-bottom-width: 1px;
-            box-shadow: 0 1px 0 #0d131a, 0 5px 12px #00000080;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            transform: translateY(3px);
-            border-bottom-width: 2px;
-            box-shadow: 0 2px 0 #0d131a;
-            pointer-events: none;
-            filter: grayscale(0.6);
-        }
-
-        .attack-btn {
-            background: #3c2a2a;
-            border-bottom-color: #1d1111;
-            color: #ffbaba;
-            text-shadow: 0 0 8px #ff6b6b;
-        }
-
-        .heal-btn {
-            background: #1d3a30;
-            border-bottom-color: #10241d;
-            color: #b6f0d6;
-            text-shadow: 0 0 8px #4ee6a4;
-        }
-
-        .flee-btn {
-            background: #2f2b40;
-            border-bottom-color: #191625;
-            color: #cfc1ff;
-        }
-
-        .new-run-btn {
-            background: #2a3444;
-            border-bottom-color: #121b26;
-            color: #b8d4ff;
-        }
-
-        .log-box {
-            background: #0d1117;
-            border-radius: 20px;
-            padding: 12px 18px;
-            margin-top: 20px;
-            height: 80px;
-            overflow-y: auto;
-            font-size: 0.9rem;
-            color: #afc3d6;
-            border: 1px solid #364b5c;
-            box-shadow: inset 0 0 12px #000000;
-            line-height: 1.5;
-            scrollbar-width: thin;
-            scrollbar-color: #3e5f77 #0d1117;
-        }
-
-        .log-box div {
-            border-bottom: 1px solid #1e2a35;
-            padding: 3px 0;
-        }
-
-        .log-box div:last-child {
-            border-bottom: none;
-        }
-
-        .game-over-message {
-            color: #ff9f9f;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 0 0 15px #ff0000;
-        }
-
-        .gold-flash {
-            animation: goldPulse 0.3s ease;
-        }
-
-        @keyframes goldPulse {
-            0% { color: #ffd966; text-shadow: 0 0 8px gold; }
-            50% { color: #fff3b0; text-shadow: 0 0 25px #ffbb00; }
-            100% { color: #ffd966; text-shadow: 0 0 8px gold; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肉鸽地牢 · 通关版</title>
+<style>
+  * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
+  body {
+    background: #0a0c0f; min-height: 100vh; display: flex;
+    align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; padding: 16px;
+  }
+  .game-wrapper {
+    background: #1a1e26; padding: 20px; border-radius: 32px;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.9), inset 0 0 8px #3b4b5e;
+    border: 1px solid #3d5066; max-width: 520px; width: 100%;
+  }
+  .game-container {
+    background: #0f1319; border-radius: 24px; padding: 18px;
+    box-shadow: inset 0 0 20px #000, 0 0 0 2px #2e3d4f;
+  }
+  .status-panel {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    align-items: center; gap: 10px; margin-bottom: 16px;
+    color: #e0e9f0; font-weight: bold; font-size: 1rem;
+  }
+  .hp-bar {
+    display: flex; align-items: center; gap: 6px; background: #1d262f;
+    padding: 6px 14px; border-radius: 60px; border: 1px solid #4c6a7f;
+  }
+  .hp-value { color: #ffbaba; font-size: 1.2rem; }
+  .stats {
+    display: flex; gap: 16px; background: #1d262f;
+    padding: 6px 16px; border-radius: 60px; border: 1px solid #4c6a7f;
+  }
+  .stat-item { display: flex; align-items: center; gap: 4px; }
+  .gold { color: #ffd966; } .floor { color: #a3d0ff; } .attack { color: #ff8a5c; }
+  .battlefield {
+    background: #0b0e12; border-radius: 24px; padding: 20px 14px 14px;
+    border: 2px solid #2a3a4a; box-shadow: inset 0 0 25px #000;
+    margin-bottom: 16px; text-align: center;
+  }
+  .enemy-name {
+    color: #c9dbe9; font-size: 1.1rem; letter-spacing: 2px;
+    background: #1f2b36; padding: 4px 20px; border-radius: 40px;
+    border: 1px solid #3e5b70; display: inline-block; margin-bottom: 8px;
+  }
+  .enemy-name.boss { color: #ffd700; border-color: #ffd700; box-shadow: 0 0 12px #ffd70088; }
+  .enemy-sprite {
+    font-size: 5rem; line-height: 1; filter: drop-shadow(0 0 15px currentColor);
+    margin: 4px 0 8px; color: #b0c6d8; text-shadow: 0 0 30px #326180;
+  }
+  .enemy-hp-bar {
+    width: 90%; max-width: 260px; height: 16px; background: #201f24;
+    border-radius: 40px; border: 1px solid #4e6478; overflow: hidden;
+    margin: 0 auto 6px;
+  }
+  .enemy-hp-fill {
+    height: 100%; width: 100%; background: linear-gradient(90deg, #c42e2e, #e05a5a);
+    border-radius: 40px; transition: width 0.2s ease; box-shadow: 0 0 10px #ff4b4b;
+  }
+  .enemy-stats {
+    display: inline-flex; gap: 18px; font-size: 0.85rem; color: #bbd1e4;
+    background: #151f28; padding: 3px 16px; border-radius: 40px;
+  }
+  .action-buttons {
+    display: flex; gap: 10px; justify-content: center;
+    margin-top: 14px; flex-wrap: wrap;
+  }
+  .btn {
+    background: #283845; border: none; border-radius: 60px; padding: 12px 22px;
+    font-family: inherit; font-weight: bold; font-size: 1rem; letter-spacing: 1px;
+    color: #e7f2fa; border-bottom: 4px solid #121b22;
+    box-shadow: 0 6px 0 #0d131a, 0 8px 15px #00000080; cursor: pointer;
+    transition: all 0.07s ease; display: flex; align-items: center; gap: 6px;
+    touch-action: manipulation;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(5px); border-bottom-width: 1px;
+    box-shadow: 0 1px 0 #0d131a, 0 5px 12px #00000080;
+  }
+  .btn:disabled {
+    opacity: 0.4; transform: translateY(3px); border-bottom-width: 2px;
+    box-shadow: 0 2px 0 #0d131a; pointer-events: none; filter: grayscale(0.5);
+  }
+  .attack-btn { background: #3c2a2a; border-bottom-color: #1d1111; color: #ffbaba; }
+  .heal-btn { background: #1d3a30; border-bottom-color: #10241d; color: #b6f0d6; }
+  .flee-btn { background: #2f2b40; border-bottom-color: #191625; color: #cfc1ff; }
+  .restart-btn { background: #2a3444; border-bottom-color: #121b26; color: #b8d4ff; }
+  .log-box {
+    background: #0d1117; border-radius: 16px; padding: 10px 14px; margin-top: 14px;
+    height: 86px; overflow-y: auto; font-size: 0.85rem; color: #afc3d6;
+    border: 1px solid #364b5c; box-shadow: inset 0 0 12px #000;
+    line-height: 1.5; scrollbar-width: thin;
+  }
+  .log-box div { border-bottom: 1px solid #1e2a35; padding: 2px 0; }
+  .log-box div:last-child { border-bottom: none; }
+  .game-over-msg {
+    text-align: center; font-size: 1.1rem; font-weight: bold; margin: 8px 0;
+  }
+  .game-over-msg.lose { color: #ff9f9f; text-shadow: 0 0 15px #ff0000; }
+  .game-over-msg.win { color: #ffd966; text-shadow: 0 0 20px #ffbb00; }
+  .hidden { display: none !important; }
+</style>
 </head>
 <body>
 <div class="game-wrapper">
-    <div class="game-container">
-        <!-- 状态栏 -->
-        <div class="status-panel">
-            <div class="hp-bar">
-                <span class="hp-icon">❤️</span>
-                <span class="hp-value" id="hpDisplay">20 / 20</span>
-            </div>
-            <div class="stats">
-                <div class="stat-item"><span class="stat-icon">⚔️</span><span class="attack" id="atkDisplay">3</span></div>
-                <div class="stat-item"><span class="stat-icon">💰</span><span class="gold" id="goldDisplay">0</span></div>
-                <div class="stat-item"><span class="stat-icon">🏰</span><span class="floor" id="floorDisplay">1</span></div>
-            </div>
-        </div>
-
-        <!-- 战斗区域 -->
-        <div class="battlefield">
-            <div class="enemy-area">
-                <div class="enemy-name" id="enemyName">骷髅战士</div>
-                <div class="enemy-sprite" id="enemySprite">💀</div>
-                <div class="enemy-hp-bar">
-                    <div class="enemy-hp-fill" id="enemyHpFill" style="width: 100%"></div>
-                </div>
-                <div class="enemy-stats">
-                    <span>❤️ <span id="enemyHpText">12/12</span></span>
-                    <span>⚔️ <span id="enemyAtkText">3</span></span>
-                </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="action-buttons" id="actionButtons">
-                <button class="btn attack-btn" id="attackBtn">⚔️ 攻击</button>
-                <button class="btn heal-btn" id="healBtn">🧪 治疗 (2💰)</button>
-                <button class="btn flee-btn" id="fleeBtn">🏃 逃跑</button>
-            </div>
-            <div id="gameOverMsg" class="game-over-message" style="display: none;"></div>
-        </div>
-
-        <!-- 日志 -->
-        <div class="log-box" id="logBox">
-            <div>⚔️ 进入地牢，小心前行...</div>
-        </div>
+  <div class="game-container">
+    <div class="status-panel">
+      <div class="hp-bar"><span>❤️</span><span class="hp-value" id="hpDisplay">20 / 20</span></div>
+      <div class="stats">
+        <div class="stat-item">⚔️ <span class="attack" id="atkDisplay">3</span></div>
+        <div class="stat-item">💰 <span class="gold" id="goldDisplay">0</span></div>
+        <div class="stat-item">🏰 <span class="floor" id="floorDisplay">1</span></div>
+      </div>
     </div>
+
+    <div class="battlefield">
+      <div class="enemy-name" id="enemyName">骷髅战士</div>
+      <div class="enemy-sprite" id="enemySprite">💀</div>
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemyHpFill" style="width:100%"></div></div>
+      <div class="enemy-stats">
+        <span>❤️ <span id="enemyHpText">12/12</span></span>
+        <span>⚔️ <span id="enemyAtkText">3</span></span>
+      </div>
+    </div>
+
+    <div class="action-buttons" id="actionButtons">
+      <button class="btn attack-btn" id="attackBtn">⚔️ 攻击</button>
+      <button class="btn heal-btn" id="healBtn">🧪 治疗 (2💰)</button>
+      <button class="btn flee-btn" id="fleeBtn">🏃 逃跑</button>
+    </div>
+
+    <div id="gameOverMsg" class="game-over-msg hidden"></div>
+    <div class="log-box" id="logBox"></div>
+  </div>
 </div>
 
 <script>
-    (function() {
-        // ---------- 游戏状态 ----------
-        let player = {
-            hp: 20,
-            maxHp: 20,
-            attack: 3,
-            gold: 0,
-            floor: 1,
-        };
+(function() {
+  const BOSS_FLOOR = 10; // 第10层为Boss层
 
-        let enemy = {
-            name: '骷髅战士',
-            sprite: '💀',
-            hp: 12,
-            maxHp: 12,
-            attack: 3,
-        };
+  let player = { hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1 };
+  let enemy = { name: '骷髅战士', sprite: '💀', hp: 12, maxHp: 12, attack: 3, isBoss: false };
+  let gamePhase = 'battle'; // 'battle' | 'gameover' | 'victory'
 
-        // 游戏阶段: 'battle' 战斗中, 'gameover' 游戏结束
-        let gamePhase = 'battle';
-        // 防止连续点击 / 按钮冷却 (但点击攻击会立即触发回合)
-        let actionLock = false;   // 简单锁，用于避免快速连续点击导致异步混乱，但同步逻辑下其实没有异步，不过为了体验
+  const hpDisplay = document.getElementById('hpDisplay');
+  const atkDisplay = document.getElementById('atkDisplay');
+  const goldDisplay = document.getElementById('goldDisplay');
+  const floorDisplay = document.getElementById('floorDisplay');
+  const enemyName = document.getElementById('enemyName');
+  const enemySprite = document.getElementById('enemySprite');
+  const enemyHpFill = document.getElementById('enemyHpFill');
+  const enemyHpText = document.getElementById('enemyHpText');
+  const enemyAtkText = document.getElementById('enemyAtkText');
+  const attackBtn = document.getElementById('attackBtn');
+  const healBtn = document.getElementById('healBtn');
+  const fleeBtn = document.getElementById('fleeBtn');
+  const logBox = document.getElementById('logBox');
+  const gameOverMsg = document.getElementById('gameOverMsg');
 
-        // DOM 元素
-        const hpDisplay = document.getElementById('hpDisplay');
-        const atkDisplay = document.getElementById('atkDisplay');
-        const goldDisplay = document.getElementById('goldDisplay');
-        const floorDisplay = document.getElementById('floorDisplay');
-        const enemyName = document.getElementById('enemyName');
-        const enemySprite = document.getElementById('enemySprite');
-        const enemyHpFill = document.getElementById('enemyHpFill');
-        const enemyHpText = document.getElementById('enemyHpText');
-        const enemyAtkText = document.getElementById('enemyAtkText');
-        const attackBtn = document.getElementById('attackBtn');
-        const healBtn = document.getElementById('healBtn');
-        const fleeBtn = document.getElementById('fleeBtn');
-        const logBox = document.getElementById('logBox');
-        const gameOverMsg = document.getElementById('gameOverMsg');
-        const actionButtons = document.getElementById('actionButtons');
+  function log(msg) {
+    const div = document.createElement('div');
+    div.textContent = msg;
+    logBox.appendChild(div);
+    logBox.scrollTop = logBox.scrollHeight;
+    while (logBox.children.length > 40) logBox.removeChild(logBox.firstChild);
+  }
 
-        // ---------- 辅助函数 ----------
-        function log(message, isGood = true) {
-            const entry = document.createElement('div');
-            entry.textContent = message;
-            // 简单颜色区分，可选
-            if (message.includes('❤️') || message.includes('治疗')) entry.style.color = '#a3e0b0';
-            if (message.includes('💀') || message.includes('死亡')) entry.style.color = '#ff9e9e';
-            if (message.includes('💰') || message.includes('金币')) entry.style.color = '#ffd966';
-            logBox.appendChild(entry);
-            logBox.scrollTop = logBox.scrollHeight;
-            // 限制日志长度，保留最后30条
-            while (logBox.children.length > 30) {
-                logBox.removeChild(logBox.firstChild);
-            }
-        }
+  function updateUI() {
+    hpDisplay.textContent = `${player.hp} / ${player.maxHp}`;
+    atkDisplay.textContent = player.attack;
+    goldDisplay.textContent = player.gold;
+    floorDisplay.textContent = player.floor;
 
-        // 更新所有UI
-        function updateUI() {
-            // 玩家状态
-            hpDisplay.textContent = `${player.hp} / ${player.maxHp}`;
-            atkDisplay.textContent = player.attack;
-            goldDisplay.textContent = player.gold;
-            floorDisplay.textContent = player.floor;
+    enemyName.textContent = enemy.name;
+    enemyName.classList.toggle('boss', !!enemy.isBoss);
+    enemySprite.textContent = enemy.sprite;
+    const pct = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+    enemyHpFill.style.width = pct + '%';
+    enemyHpText.textContent = `${enemy.hp}/${enemy.maxHp}`;
+    enemyAtkText.textContent = enemy.attack;
 
-            // 敌人状态
-            enemyName.textContent = enemy.name;
-            enemySprite.textContent = enemy.sprite;
-            const enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
-            enemyHpFill.style.width = enemyHpPercent + '%';
-            enemyHpText.textContent = `${enemy.hp}/${enemy.maxHp}`;
-            enemyAtkText.textContent = enemy.attack;
+    if (gamePhase === 'gameover' || gamePhase === 'victory') {
+      attackBtn.disabled = true;
+      healBtn.disabled = true;
+      fleeBtn.disabled = true;
+      gameOverMsg.classList.remove('hidden');
 
-            // 根据游戏阶段处理按钮和额外显示
-            if (gamePhase === 'gameover') {
-                attackBtn.disabled = true;
-                healBtn.disabled = true;
-                fleeBtn.disabled = true;
-                // 显示游戏结束信息，隐藏常规按钮区？可以在gameOverMsg显示，但保留按钮禁用更好
-                gameOverMsg.style.display = 'block';
-                // 如果游戏结束，显示重新开始按钮
-                if (!document.getElementById('restartBtn')) {
-                    const restartBtn = document.createElement('button');
-                    restartBtn.id = 'restartBtn';
-                    restartBtn.className = 'btn new-run-btn';
-                    restartBtn.textContent = '🔄 新的轮回';
-                    restartBtn.style.marginTop = '12px';
-                    restartBtn.addEventListener('click', resetGame);
-                    // 替换或者添加？保持简洁，移除gameOverMsg中内容并加入按钮
-                    gameOverMsg.innerHTML = '💀 你已倒下... <br>';
-                    gameOverMsg.appendChild(restartBtn);
-                }
-            } else {
-                // 战斗阶段，启用按钮（但治疗可能需要金币判断）
-                attackBtn.disabled = false;
-                healBtn.disabled = (player.gold < 2 || player.hp >= player.maxHp); // 满血或没钱不能治疗
-                fleeBtn.disabled = false;
-                gameOverMsg.style.display = 'none';
-                // 移除可能存在的重新开始按钮（防止重复）
-                const oldRestart = document.getElementById('restartBtn');
-                if (oldRestart) oldRestart.remove();
-            }
+      if (!document.getElementById('restartBtn')) {
+        const isWin = gamePhase === 'victory';
+        gameOverMsg.className = 'game-over-msg ' + (isWin ? 'win' : 'lose');
+        gameOverMsg.innerHTML = isWin
+          ? '🏆 通关！你击败了地牢之主！<br>'
+          : '💀 你已倒下... <br>';
+        const btn = document.createElement('button');
+        btn.id = 'restartBtn';
+        btn.className = 'btn restart-btn';
+        btn.textContent = '🔄 新的轮回';
+        btn.style.marginTop = '10px';
+        btn.addEventListener('click', resetGame);
+        gameOverMsg.appendChild(btn);
+      }
+    } else {
+      attackBtn.disabled = false;
+      fleeBtn.disabled = false;
+      healBtn.disabled = (player.gold < 2 || player.hp >= player.maxHp || player.hp <= 0);
+      gameOverMsg.classList.add('hidden');
+    }
+  }
 
-            // 攻击/治疗等按钮额外禁用（如果行动锁, 但通常不用）
-            if (actionLock) {
-                attackBtn.disabled = true;
-                healBtn.disabled = true;
-                fleeBtn.disabled = true;
-            }
-        }
+  function generateEnemy() {
+    // Boss层特殊处理
+    if (player.floor === BOSS_FLOOR) {
+      const hp = 60 + Math.floor(Math.random() * 15);
+      const atk = 8 + Math.floor(Math.random() * 3);
+      enemy = { name: '地牢之主', sprite: '👑', hp, maxHp: hp, attack: atk, isBoss: true };
+      log(`👑 第 ${BOSS_FLOOR} 层 · BOSS「地牢之主」出现！(❤️${hp} ⚔️${atk})`);
+      return;
+    }
 
-        // 重置游戏（新的一轮）
-        function resetGame() {
-            player = {
-                hp: 20,
-                maxHp: 20,
-                attack: 3,
-                gold: 0,
-                floor: 1,
-            };
-            gamePhase = 'battle';
-            actionLock = false;
-            // 清除日志
-            logBox.innerHTML = '';
-            log('⚔️ 你踏入地牢，新的冒险开始。');
-            // 生成第一层敌人
-            generateEnemyForFloor();
-            updateUI();
-            // 隐藏gameover消息
-            gameOverMsg.style.display = 'none';
-            const restartBtn = document.getElementById('restartBtn');
-            if (restartBtn) restartBtn.remove();
-        }
+    const names = [
+      { name: '骷髅战士', sprite: '💀' }, { name: '洞穴蝙蝠', sprite: '🦇' },
+      { name: '腐化史莱姆', sprite: '🟢' }, { name: '地穴蜘蛛', sprite: '🕷️' },
+      { name: '幽灵', sprite: '👻' }, { name: '兽人斥候', sprite: '👹' },
+      { name: '石像鬼', sprite: '🗿' }, { name: '地狱犬', sprite: '🐕' },
+      { name: '暗影法师', sprite: '🧙' }, { name: '小恶魔', sprite: '😈' }
+    ];
+    const base = names[Math.floor(Math.random() * names.length)];
+    const f = player.floor;
+    const hp = Math.max(6, 8 + Math.floor(Math.random() * 6) + Math.floor(f * 2.2));
+    const atk = Math.max(2, 2 + Math.floor(Math.random() * 3) + Math.floor(f * 0.7));
+    let prefix = '';
+    if (f >= 4 && Math.random() < 0.35) prefix = '精英·';
+    enemy = { name: prefix + base.name, sprite: base.sprite, hp, maxHp: hp, attack: atk, isBoss: false };
+    log(`⚔️ 第 ${f} 层遭遇 ${enemy.name} (❤️${enemy.hp} ⚔️${enemy.attack})`);
+  }
 
-        // 根据层数生成敌人
-        function generateEnemyForFloor() {
-            const floor = player.floor;
-            // 基础命名池
-            const names = [
-                { name: '骷髅战士', sprite: '💀' },
-                { name: '洞穴蝙蝠', sprite: '🦇' },
-                { name: '腐化史莱姆', sprite: '🟢' },
-                { name: '地穴蜘蛛', sprite: '🕷️' },
-                { name: '幽灵', sprite: '👻' },
-                { name: '兽人斥候', sprite: '👹' },
-                { name: '石像鬼', sprite: '🗿' },
-                { name: '地狱犬', sprite: '🐕‍🦺' },
-                { name: '暗影法师', sprite: '🧙' },
-                { name: '小恶魔', sprite: '😈' },
-                { name: '瘟疫医生', sprite: '🦡' },
-                { name: '深渊守卫', sprite: '👾' }
-            ];
-            // 随机选择（层级越高，可能选择更靠后的，但简单随机）
-            const idx = Math.floor(Math.random() * names.length);
-            const base = names[idx];
+  function onEnemyDeath() {
+    // 检查是否击败Boss → 通关
+    if (enemy.isBoss) {
+      gamePhase = 'victory';
+      log('🏆 你击败了地牢之主！通关成功！');
+      updateUI();
+      return;
+    }
 
-            // 敌人属性随层数提升
-            const floorMultiplier = player.floor;
-            // 基础生命 8~14 加上层数*2.5左右
-            const baseHp = 8 + Math.floor(Math.random() * 7) + Math.floor(floorMultiplier * 2.2);
-            const hp = Math.max(6, baseHp);
-            // 攻击力: 基础2~4 加上层数(每层0.6向下取整，但保证至少2)
-            const baseAtk = 2 + Math.floor(Math.random() * 3) + Math.floor(floorMultiplier * 0.7);
-            const attack = Math.max(2, baseAtk);
+    const gold = 2 + Math.floor(player.floor / 2) + Math.floor(Math.random() * 3);
+    player.gold += gold;
+    log(`💰 击败敌人！获得 ${gold} 金币。`);
+    if (Math.random() < 0.45 || player.floor % 3 === 0) {
+      player.attack += 1;
+      log(`⚔️ 攻击力提升至 ${player.attack}！`);
+    }
+    player.floor += 1;
+    const heal = 2 + Math.floor(Math.random() * 3);
+    player.hp = Math.min(player.maxHp, player.hp + heal);
+    log(`❤️ 恢复 ${heal} 点生命。进入第 ${player.floor} 层。`);
+    generateEnemy();
+    gamePhase = 'battle';
+    updateUI();
+  }
 
-            // 偶尔强化名字
-            let enemyNameStr = base.name;
-            if (player.floor >= 4 && Math.random() < 0.4) {
-                enemyNameStr = '精英·' + enemyNameStr;
-            }
-            if (player.floor >= 7 && Math.random() < 0.3) {
-                enemyNameStr = '首领·' + enemyNameStr;
-            }
+  function onPlayerDeath() {
+    player.hp = 0;
+    gamePhase = 'gameover';
+    updateUI();
+    log('💀 你被击败了... 地牢吞噬了你的灵魂。');
+  }
 
-            enemy = {
-                name: enemyNameStr,
-                sprite: base.sprite,
-                hp: hp,
-                maxHp: hp,
-                attack: attack,
-            };
+  function playerAttack() {
+    if (gamePhase !== 'battle') return;
+    const dmg = player.attack + Math.floor(Math.random() * 2);
+    enemy.hp = Math.max(0, enemy.hp - dmg);
+    log(`⚔️ 你对 ${enemy.name} 造成 ${dmg} 点伤害。`);
+    if (enemy.hp <= 0) { enemy.hp = 0; onEnemyDeath(); return; }
 
-            // 每层额外提高血量/攻击的修正
-            // 已经包含在上面的计算中
-            log(`⚔️ 第 ${player.floor} 层遭遇 ${enemy.name} (❤️${enemy.hp} ⚔️${enemy.attack})`);
-        }
+    const eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    player.hp = Math.max(0, player.hp - eDmg);
+    log(`💥 ${enemy.name} 反击，造成 ${eDmg} 点伤害。`);
+    if (player.hp <= 0) { onPlayerDeath(); return; }
+    updateUI();
+  }
 
-        // 玩家死亡处理
-        function handlePlayerDeath() {
-            gamePhase = 'gameover';
-            player.hp = 0;  // 确保显示0
-            updateUI();
-            log('💀 你被击败了... 地牢吞噬了你的灵魂。');
-        }
+  function healPlayer() {
+    if (gamePhase !== 'battle') return;
+    if (player.gold < 2) { log('💰 金币不足。'); return; }
+    if (player.hp >= player.maxHp) { log('❤️ 已满血，无需治疗。'); return; }
+    player.gold -= 2;
+    const heal = 6 + Math.floor(Math.random() * 4);
+    player.hp = Math.min(player.maxHp, player.hp + heal);
+    log(`🧪 治疗恢复 ${heal} 点生命 (消耗2💰)。`);
+    const eDmg = Math.max(1, enemy.attack + Math.floor(Math.random() * 2) - 1);
+    player.hp = Math.max(0, player.hp - eDmg);
+    log(`💥 ${enemy.name} 趁机攻击，造成 ${eDmg} 点伤害。`);
+    if (player.hp <= 0) { onPlayerDeath(); return; }
+    updateUI();
+  }
 
-        // 敌人死亡后处理：增加金币，提升层数，生成新敌人
-        function handleEnemyDeath() {
-            // 金币奖励：基础2 + 楼层数/2 随机
-            const goldEarned = 2 + Math.floor(player.floor / 2) + Math.floor(Math.random() * 3);
-            player.gold += goldEarned;
-            log(`💰 击败敌人！获得 ${goldEarned} 金币。`);
+  function flee() {
+    if (gamePhase !== 'battle') return;
+    // Boss层不能逃跑（增加挑战性）
+    if (enemy.isBoss) { log('👑 无法从地牢之主手中逃脱！'); return; }
 
-            // 每层有几率提升攻击力（成长）
-            if (Math.random() < 0.4 || player.floor % 3 === 0) {
-                player.attack += 1;
-                log(`⚔️ 你的攻击力提升了！ (现在 ${player.attack})`);
-            }
+    const loss = Math.min(player.gold, 3 + Math.floor(Math.random() * 4));
+    player.gold -= loss;
+    log(`🏃 逃跑损失 ${loss} 金币。`);
+    if (player.floor > 1) { player.floor -= 1; log(`⬇️ 退回第 ${player.floor} 层。`); }
+    else log(`⬇️ 仍在地下第 ${player.floor} 层。`);
+    const heal = 3 + Math.floor(Math.random() * 5);
+    player.hp = Math.min(player.maxHp, player.hp + heal);
+    log(`❤️ 恢复 ${heal} 点生命。`);
+    generateEnemy();
+    gamePhase = 'battle';
+    updateUI();
+  }
 
-            // 层数+1
-            player.floor += 1;
-            // 回复少量生命作为奖励（上限)
-            const healAmount = 2 + Math.floor(Math.random() * 3);
-            player.hp = Math.min(player.maxHp, player.hp + healAmount);
-            log(`❤️ 你恢复了 ${healAmount} 点生命。`);
+  function resetGame() {
+    player = { hp: 20, maxHp: 20, attack: 3, gold: 0, floor: 1 };
+    gamePhase = 'battle';
+    logBox.innerHTML = '';
+    log('⚔️ 你踏入地牢，目标：击败第10层的地牢之主！');
+    generateEnemy();
+    updateUI();
+    gameOverMsg.classList.add('hidden');
+    gameOverMsg.innerHTML = '';
+    const oldRestart = document.getElementById('restartBtn');
+    if (oldRestart) oldRestart.remove();
+  }
 
-            // 生成新敌人
-            generateEnemyForFloor();
-            // 确保游戏阶段是battle
-            gamePhase = 'battle';
-            updateUI();
-        }
-
-        // 玩家攻击
-        function playerAttack() {
-            if (gamePhase !== 'battle' || actionLock) return;
-            // 简单锁定，防止连点产生多次攻击（同步情况下没必要，但没关系）
-            actionLock = true;
-            attackBtn.disabled = true;
-            healBtn.disabled = true;
-            fleeBtn.disabled = true;
-
-            // 玩家攻击敌人
-            const damage = player.attack + Math.floor(Math.random() * 2); // 小幅波动
-            enemy.hp = Math.max(0, enemy.hp - damage);
-            log(`⚔️ 你对 ${enemy.name} 造成 ${damage} 点伤害。`);
-
-            // 检查敌人是否死亡
-            if (enemy.hp <= 0) {
-                enemy.hp = 0;
-                updateUI();
-                log(`💀 ${enemy.name} 被击败了！`);
-                // 延迟一点点处理敌人死亡，让UI更新看起来更顺畅 (使用setTimeout让战斗感觉更自然)
-                setTimeout(() => {
-                    if (gamePhase === 'battle') {
-                        handleEnemyDeath();
-                        actionLock = false;
-                        updateUI();
-                    }
-                }, 120);
-                return;
-            }
-
-            // 敌人反击
-            enemyRetaliate();
-        }
-
-        // 敌人反击
-        function enemyRetaliate() {
-            // 敌人攻击玩家
-            const enemyDamage = enemy.attack + Math.floor(Math.random() * 2) - 1; // 浮动 -1~+1
-            const finalDamage = Math.max(1, enemyDamage);
-            player.hp = Math.max(0, player.hp - finalDamage);
-            log(`💥 ${enemy.name} 反击，对你造成 ${finalDamage} 点伤害。`);
-
-            // 检查玩家是否死亡
-            if (player.hp <= 0) {
-                player.hp = 0;
-                updateUI();
-                handlePlayerDeath();
-                actionLock = false;
-                return;
-            }
-
-            // 更新UI，解锁
-            updateUI();
-            actionLock = false;
-        }
-
-        // 治疗玩家
-        function healPlayer() {
-            if (gamePhase !== 'battle' || actionLock) return;
-            if (player.gold < 2) {
-                log('💰 金币不足，无法治疗。');
-                return;
-            }
-            if (player.hp >= player.maxHp) {
-                log('❤️ 你已经满血了，不需要治疗。');
-                return;
-            }
-
-            actionLock = true;
-            attackBtn.disabled = true;
-            healBtn.disabled = true;
-            fleeBtn.disabled = true;
-
-            // 消耗2金币
-            player.gold -= 2;
-            // 回复6~9点生命
-            const healAmount = 6 + Math.floor(Math.random() * 4);
-            player.hp = Math.min(player.maxHp, player.hp + healAmount);
-            log(`🧪 你使用药水，恢复了 ${healAmount} 点生命。 (消耗2💰)`);
-
-            // 治疗之后，敌人会攻击（因为在战斗中)
-            // 但是需要先判断玩家是否因为治疗导致满血，无所谓，敌人还是会攻击
-            // 敌人攻击玩家
-            const enemyDamage = enemy.attack + Math.floor(Math.random() * 2) - 1;
-            const finalDamage = Math.max(1, enemyDamage);
-            player.hp = Math.max(0, player.hp - finalDamage);
-            log(`💥 ${enemy.name} 趁机攻击，对你造成 ${finalDamage} 点伤害。`);
-
-            if (player.hp <= 0) {
-                player.hp = 0;
-                updateUI();
-                handlePlayerDeath();
-                actionLock = false;
-                return;
-            }
-
-            updateUI();
-            actionLock = false;
-        }
-
-        // 逃跑（返回上一层？ 简化：损失金币，返回低一层，回复少许生命)
-        function flee() {
-            if (gamePhase !== 'battle' || actionLock) return;
-            // 逃跑代价：损失一些金币，退回上一层(但不能小于1)，回复少量生命
-            actionLock = true;
-            attackBtn.disabled = true;
-            healBtn.disabled = true;
-            fleeBtn.disabled = true;
-
-            const goldLoss = Math.min(player.gold, 3 + Math.floor(Math.random() * 4));
-            player.gold -= goldLoss;
-            log(`🏃 你仓皇逃跑，丢失了 ${goldLoss} 金币。`);
-
-            // 层数降低，但最低1
-            if (player.floor > 1) {
-                player.floor -= 1;
-                log(`⬇️ 你退回到了第 ${player.floor} 层。`);
-            } else {
-                log(`⬇️ 你仍在地下第 ${player.floor} 层。`);
-            }
-
-            // 恢复少量生命
-            const healAmount = 3 + Math.floor(Math.random() * 5);
-            player.hp = Math.min(player.maxHp, player.hp + healAmount);
-            log(`❤️ 你喘了口气，恢复 ${healAmount} 点生命。`);
-
-            // 生成新敌人 (根据新的层数)
-            generateEnemyForFloor();
-            // 确保游戏阶段
-            gamePhase = 'battle';
-            updateUI();
-            actionLock = false;
-        }
-
-        // 事件绑定
-        function bindEvents() {
-            attackBtn.addEventListener('click', playerAttack);
-            healBtn.addEventListener('click', healPlayer);
-            fleeBtn.addEventListener('click', flee);
-        }
-
-        // 初始化游戏
-        function initGame() {
-            // 初始状态
-            resetGame();
-            bindEvents();
-        }
-
-        // 启动
-        initGame();
-    })();
+  function init() {
+    attackBtn.addEventListener('click', playerAttack);
+    healBtn.addEventListener('click', healPlayer);
+    fleeBtn.addEventListener('click', flee);
+    resetGame();
+  }
+  init();
+})();
 </script>
 </body>
 </html>
