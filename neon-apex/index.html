@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070918"><meta name="description" content="霓虹城市中的 3D 漂移计时挑战。驾驶、加速，追逐自己的最佳圈速。"><title>NEON APEX · 霓虹边界</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<canvas id="world" aria-label="3D 赛车画面"></canvas><div class="grain"></div><div class="vignette"></div>
+<header><a class="brand" href="#" aria-label="霓虹边界首页"><i>↗</i> NEON<span>APEX</span><small>霓虹边界</small></a><div class="top-actions"><span class="live-dot"></span><span id="modeLabel">MIDNIGHT CIRCUIT</span><button id="sound" aria-label="开启声音" title="声音">声音 OFF</button><button id="quality" title="画面品质">画质 HIGH</button><button id="pause" class="hidden" title="暂停 (Esc)">Ⅱ 暂停</button></div></header>
+<main id="menu" class="menu">
+ <div class="eyebrow"><span>01 / NIGHT RUN</span><b>独立计时挑战</b></div>
+ <h1>CHASE<br>THE <em>NIGHT.</em></h1>
+ <p class="intro">城市入眠，赛道苏醒。<br>在每一个弯心，找到你的极限。</p>
+ <div class="start-row"><button id="start" class="primary">开始驾驶 <span>↗</span></button><button id="help" class="secondary">驾驶指南</button></div>
+ <div class="specs"><div><small>TRACK LENGTH</small><strong id="length">—<span> KM</span></strong></div><div><small>FORMAT</small><strong>03<span> LAPS</span></strong></div><div><small>PERSONAL BEST</small><strong id="menuBest">—<span> 首圈待创</span></strong></div></div>
+</main>
+<aside id="trackCard" class="track-card"><div><span class="live-dot"></span> 夜行赛道 <small>SECTOR 01—03</small></div><canvas id="menuMap" width="260" height="150"></canvas><p>封闭赛道 <span>•</span> 自由漂移 <span>•</span> 个人幽灵</p></aside>
+<div class="bottom-menu" id="bottomMenu"><span>BUILT FOR THE FLOW. <b>DESIGNED FOR THE NIGHT.</b></span><span><kbd>W A S D</kbd> 驾驶 <kbd>SPACE</kbd> 漂移 <kbd>SHIFT</kbd> 氮气</span></div>
+<section id="hud" class="hidden" aria-label="比赛仪表">
+ <div class="lap-panel"><small>LAP / 圈数</small><div><b id="lap">01</b><span>/ 03</span></div><div class="sectors"><i></i><i></i><i></i></div><p id="sectorLabel">SECTOR 01</p></div>
+ <div class="times"><div><small>当前圈速</small><strong id="timer">00:00.000</strong></div><div><small>最佳圈速</small><strong id="best">—</strong></div><p id="ghostLabel">首个纪录，等你创造</p></div>
+ <div class="map-box"><canvas id="map" width="220" height="150"></canvas><span>MIDNIGHT CIRCUIT</span></div>
+ <div class="speed-box"><span id="drift">GRIP / 抓地</span><div><strong id="speed">000</strong><small>KM/H</small></div><div class="speed-line"><i id="speedFill"></i></div><div class="nitro"><span>N₂</span><div><i id="nitroFill"></i></div><small id="nitroText">100%</small></div></div>
+ <div class="race-bottom"><span><kbd>SPACE</kbd> 漂移 <kbd>SHIFT</kbd> 氮气 <kbd>R</kbd> 回到赛道 <kbd>ESC</kbd> 暂停</span><button id="reset">↻ 重开</button></div>
+</section>
+<div id="countdown" class="countdown hidden" aria-live="polite"></div><div id="toast" class="toast" aria-live="polite"></div>
+<div id="touch" class="touch hidden"><div><button data-key="ArrowLeft" aria-label="左转">◀</button><button data-key="ArrowRight" aria-label="右转">▶</button></div><div><button data-key="Space">漂移</button><button data-key="ShiftLeft">N₂</button><button data-key="ArrowDown">刹车</button><button data-key="ArrowUp">油门</button></div></div>
+<dialog id="guide"><button class="close" id="closeGuide" aria-label="关闭">×</button><span class="eyebrow">DRIVER'S BRIEFING</span><h2>掌握弯道，掌握夜晚。</h2><div class="guide-grid"><p><kbd>W / ↑</kbd><b>油门</b><span>平顺加速，直道全开。</span></p><p><kbd>S / ↓</kbd><b>刹车 / 倒车</b><span>入弯前减速，低速时可倒车。</span></p><p><kbd>A D / ← →</kbd><b>方向</b><span>高速轻打方向，提前寻找弯心。</span></p><p><kbd>SPACE</kbd><b>手刹漂移</b><span>转向时轻按，让车尾滑过弯道。</span></p><p><kbd>SHIFT</kbd><b>氮气</b><span>直道释放；松开后自动恢复。</span></p><p><kbd>R / ESC</kbd><b>救援 / 暂停</b><span>救援回赛道，当前圈计时加 3 秒。</span></p></div><p class="guide-note">完成三圈结束挑战。按顺序通过赛道检查点才计圈，最佳单圈与幽灵记录保存在当前浏览器。手机请横屏，用屏幕按钮驾驶。</p><button id="guideGo" class="primary">明白，准备上场 ↗</button></dialog>
+<dialog id="pauseDialog"><span class="eyebrow">TAKE A BREATH</span><h2>夜晚会等你。</h2><p>比赛已暂停，计时停止。</p><button id="resume" class="primary">继续驾驶 ↗</button><button id="quit" class="secondary">返回主界面</button></dialog>
+<dialog id="finish"><span class="eyebrow">SESSION COMPLETE</span><h2>留下一道光。</h2><p id="finishSubtitle">三圈挑战完成</p><div id="lapResults"></div><p class="guide-note">最佳单圈已保存在此浏览器。再跑一场，挑战自己的幽灵。</p><button id="again" class="primary">再次挑战 ↗</button><button id="finishMenu" class="secondary">返回主界面</button></dialog>
+<div id="error" class="hidden error"><h2>当前环境无法启动 3D 画面</h2><p>请使用启用硬件加速的现代浏览器重新打开。</p></div>
+<script type="module" src="game.js"></script>
+</body></html>
